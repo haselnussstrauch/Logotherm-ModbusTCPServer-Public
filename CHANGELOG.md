@@ -9,7 +9,8 @@ beim Veröffentlichen als Release-Text verwendet (`packaging/windows/build-docke
   Zustand von `can0` und meldet einen Fehler samt Befehl zur Korrektur, wenn sie nicht zur Konfiguration
   passt.
 - **CAN-Adapter im Betrieb ab- und wieder angesteckt:** Das Gateway erkennt das nach etwa 2 s und
-  öffnet den Adapter beim nächsten Zugriff selbst neu (bisher war ein Neustart nötig).
+  öffnet den Adapter beim nächsten Zugriff selbst neu (bisher war ein Neustart nötig). Unter Linux
+  wird dazu auch erkannt, dass `can0` neu angelegt wurde.
 - **Pi-Anleitung korrigiert:** `RestartSec=1s` aus der `can0`-Konfiguration entfernt – der InnoMaker
   unterstützt das nicht, `can0` blieb dadurch aus.
 

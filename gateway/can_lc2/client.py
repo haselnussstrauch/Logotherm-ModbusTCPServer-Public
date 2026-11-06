@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import socket
 import threading
 import time
 from collections import deque
@@ -48,6 +49,8 @@ ENUM_IDLE_S = 2.0
 ENUM_MAX_S = 120.0
 #: so viele Empfangsfehler in Folge (je 0,2 s Pause) -> Adapter gilt als getrennt und wird neu geöffnet
 REOPEN_AFTER_FAILS = 10
+#: SocketCAN: so oft prüfen, ob die Schnittstelle noch dieselbe ist (Adapter neu angesteckt)
+IFINDEX_CHECK_S = 1.0
 
 Mode = Literal["single", "block", "enum"]
 FrameHook = Callable[[can.Message, "idcodec.FrameId | None", str], None]
@@ -195,12 +198,49 @@ class CanClient:
         return s
 
     # ===== Empfang (Thread -> asyncio) ==========================================================
+    def _ifindex(self) -> int | None:
+        """SocketCAN: aktueller Index der Schnittstelle (neu angesteckt = neuer Index), sonst None."""
+        if self.cfg.interface != "socketcan":
+            return None
+        try:
+            return socket.if_nametoindex(str(self.cfg.channel))
+        except OSError:
+            return 0                      # Schnittstelle gerade nicht vorhanden
+        except Exception:  # noqa: BLE001 – Plattform ohne if_nametoindex
+            return None
+
+    def _disconnected(self, reason: str) -> None:
+        """Adapter getrennt: als geschlossen melden -> der Treiber öffnet beim nächsten Zugriff neu."""
+        log.error("CAN-Adapter getrennt (%s) – wird beim nächsten Zugriff neu geöffnet", reason)
+        self._iface_error = f"CAN-Adapter getrennt: {reason}"
+        self._running = False
+        p = self._pending
+        if p is not None and self._loop is not None and not self._loop.is_closed():
+            def _fail(p=p, err=self._iface_error):
+                p.error = InterfaceError(err)
+                p.done.set()
+            try:
+                self._loop.call_soon_threadsafe(_fail)
+            except RuntimeError:
+                pass
+
     def _reader(self) -> None:
         fails = 0
+        ifindex = self._ifindex()
+        next_check = _now() + IFINDEX_CHECK_S
         while self._running:
             bus = self._bus
             if bus is None:
                 break
+            if ifindex and _now() >= next_check:
+                next_check = _now() + IFINDEX_CHECK_S
+                cur = self._ifindex()
+                if cur is not None and cur != ifindex:
+                    # SocketCAN meldet ein Abziehen nur einmal; danach ist der Socket an eine
+                    # verschwundene Schnittstelle gebunden und empfängt einfach nichts mehr.
+                    self._disconnected(f"Schnittstelle {self.cfg.channel} "
+                                       f"{'fehlt' if not cur else 'wurde neu angelegt'}")
+                    break
             try:
                 msg = bus.recv(0.1)
                 fails = 0
@@ -211,19 +251,7 @@ class CanClient:
                 if fails == 1:
                     log.error("CAN-Empfang gestört: %s", exc)
                 if fails >= REOPEN_AFTER_FAILS:
-                    # Adapter abgezogen/neu angesteckt (z. B. SocketCAN: neue Schnittstelle, ENODEV):
-                    # als geschlossen melden -> der Treiber öffnet beim nächsten Zugriff neu.
-                    log.error("CAN-Adapter antwortet nicht mehr (%s) – wird beim nächsten Zugriff neu geöffnet", exc)
-                    self._running = False
-                    p = self._pending
-                    if p is not None and self._loop is not None and not self._loop.is_closed():
-                        def _fail(p=p, err=str(exc)):
-                            p.error = InterfaceError(f"CAN-Adapter getrennt: {err}")
-                            p.done.set()
-                        try:
-                            self._loop.call_soon_threadsafe(_fail)
-                        except RuntimeError:
-                            pass
+                    self._disconnected(str(exc))
                     break
                 time.sleep(0.2)
                 continue

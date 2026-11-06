@@ -62,3 +62,26 @@ def test_client_meldet_sich_nach_dauerstoerung_geschlossen(monkeypatch):
         await c.close()
 
     asyncio.run(run())
+
+
+def test_socketcan_neu_angesteckt_wird_erkannt(monkeypatch):
+    """SocketCAN meldet das Abziehen nur einmal – erkannt wird es am neuen Schnittstellen-Index."""
+    monkeypatch.setattr(client_mod, "IFINDEX_CHECK_S", 0.05)
+    idx = {"v": 8}
+    monkeypatch.setattr(client_mod.socket, "if_nametoindex", lambda name: idx["v"])
+
+    async def run():
+        c = CanClient(CanConfig(enabled=True, interface="socketcan", channel="can0"),
+                      bus_factory=lambda cfg, lo: DyingBus())
+        await c.open()
+        await asyncio.sleep(0.2)
+        assert c.is_open
+        idx["v"] = 15                       # neu angesteckt, recv() liefert weiter nur None
+        for _ in range(50):
+            if not c.is_open:
+                break
+            await asyncio.sleep(0.05)
+        assert not c.is_open
+        await c.close()
+
+    asyncio.run(run())
