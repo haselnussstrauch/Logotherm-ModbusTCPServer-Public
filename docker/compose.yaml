@@ -23,11 +23,15 @@ services:
 
     volumes:
       - ./data:/data
+      # Serielle LC1-Regler (FTDI): /dev des Hosts sichtbar machen, damit USB-Seriell-Adapter
+      # (auch später angesteckte) samt /dev/serial/by-id/... in der Weboberfläche erscheinen.
+      # Zugriff ist nur auf die unten freigegebenen Gerätearten erlaubt.
+      - /dev:/dev
 
-    # Serielle LC1-Regler (FTDI): stabilen by-id-Pfad durchreichen und in der Weboberfläche
-    # als Port eintragen (gleicher Pfad im Container).
-    # devices:
-    #   - /dev/serial/by-id/usb-FTDI_FT232R_USB_UART_XXXXXXXX-if00-port0:/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_XXXXXXXX-if00-port0
+    # Erlaubte Geräte: 188 = ttyUSB* (FTDI, z. B. DIGITUS DA-70156), 166 = ttyACM*
+    device_cgroup_rules:
+      - "c 188:* rmw"
+      - "c 166:* rmw"
 
     # NET_ADMIN wird nur gebraucht, wenn der Container can0 selbst einrichten soll (CAN_SETUP=1).
     # Richtet der Host can0 ein (systemd-networkd, siehe docs/docker.md), bleibt es auskommentiert.

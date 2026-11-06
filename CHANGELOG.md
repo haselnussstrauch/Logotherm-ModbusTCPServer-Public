@@ -13,6 +13,9 @@ beim Veröffentlichen als Release-Text verwendet (`packaging/windows/build-docke
   wird dazu auch erkannt, dass `can0` neu angelegt wurde.
 - **Pi-Anleitung korrigiert:** `RestartSec=1s` aus der `can0`-Konfiguration entfernt – der InnoMaker
   unterstützt das nicht, `can0` blieb dadurch aus.
+- **Docker/Raspberry Pi: serielle Adapter ohne Einrichtung.** USB-Seriell-Adapter (FTDI) erscheinen
+  automatisch in der Weboberfläche, auch später angesteckte; der Eintrag in `compose.yaml` entfällt.
+  Wer ihn früher von Hand eingetragen hat: vor dem Update `git checkout docker/compose.yaml`.
 
 ## 0.1.8 – 2026-11-06
 

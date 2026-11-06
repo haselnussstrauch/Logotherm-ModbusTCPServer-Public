@@ -89,16 +89,18 @@ Modbus-Clients eintragen, sonst darf jeder Client im Netz zugreifen.
 
 ## 3. Serielle Geräte (LC1 über FTDI)
 
-Immer den stabilen Pfad unter `/dev/serial/by-id/` verwenden (`/dev/ttyUSB0` ändert sich je nach
-Steckreihenfolge):
+Nichts einzurichten: `compose.yaml` bindet `/dev` des Hosts ein und erlaubt per
+`device_cgroup_rules` nur USB-Seriell-Adapter (`ttyUSB*` = Major 188, `ttyACM*` = Major 166).
+Andere Geräte (z. B. die SD-Karte) bleiben für den Container gesperrt. Adapter erscheinen damit
+auch nach späterem Anstecken samt stabilem Pfad unter `/dev/serial/by-id/` in der Weboberfläche;
+dort diesen Pfad als Port verwenden (`/dev/ttyUSB0` ändert sich je nach Steckreihenfolge).
 
 ```bash
 ls -l /dev/serial/by-id/
 ```
 
-In `compose.yaml` unter `devices:` den Eintrag mit dem eigenen Pfad einkommentieren und denselben Pfad
-in der Weboberfläche als Port des LC1-Geräts eintragen. Läuft der Container nicht als Root, muss der
-User Mitglied der Gruppe `dialout` sein (`group_add: ["dialout"]`).
+Läuft der Container nicht als Root, muss der User Mitglied der Gruppe `dialout` sein
+(`group_add: ["dialout"]`).
 
 ## 4. Befehle im Container
 

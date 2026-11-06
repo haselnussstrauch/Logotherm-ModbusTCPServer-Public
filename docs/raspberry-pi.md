@@ -179,32 +179,15 @@ Das Gateway liegt jetzt im Ordner `logotherm-gateway` in deinem Benutzerordner.
 
 Ohne LambdaControl 1 am RS232: diesen Schritt überspringen.
 
-1. FTDI-Adapter anstecken und den dauerhaften Namen anzeigen:
+Den FTDI-Adapter (z. B. DIGITUS DA-70156) einfach an einen USB-Anschluss stecken – **sonst ist nichts
+einzurichten**. Das Gateway sieht ihn automatisch, auch wenn er erst später angesteckt wird. Kontrolle:
 
-   ```bash
-   ls /dev/serial/by-id/
-   ```
+```bash
+ls /dev/serial/by-id/
+```
 
-   Es erscheint z. B. `usb-FTDI_FT232R_USB_UART_A10K1ABC-if00-port0`. Diesen Namen brauchst du gleich.
-
-2. Datei öffnen:
-
-   ```bash
-   nano ~/logotherm-gateway/docker/compose.yaml
-   ```
-
-3. Zur Stelle `# devices:` scrollen (Pfeiltasten). Die zwei Zeilen darunter so ändern, dass vorne
-   **kein `#`** mehr steht und dein Name eingesetzt ist (Einrückung wie gezeigt, mit Leerzeichen):
-
-   ```yaml
-       devices:
-         - /dev/serial/by-id/usb-FTDI_FT232R_USB_UART_A10K1ABC-if00-port0:/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_A10K1ABC-if00-port0
-   ```
-
-4. Speichern: **Strg + O**, Enter. Beenden: **Strg + X**.
-
-In der Weboberfläche trägst du später genau diesen Pfad
-(`/dev/serial/by-id/usb-FTDI_…-port0`) als Anschluss der LambdaControl 1 ein.
+Es erscheint z. B. `usb-FTDI_FT232R_USB_UART_BG035PRC-if00-port0`. In der Weboberfläche (Schritt 9,
+*2 Geräte suchen*) steht der Adapter dann unter den seriellen Anschlüssen – einfach ankreuzen.
 
 ---
 
@@ -315,6 +298,7 @@ Alles Wichtige (Einstellungen, Passwort, Aufzeichnung, Logs) liegt im Ordner
 | `ssh`: „REMOTE HOST IDENTIFICATION HAS CHANGED“ | Karte wurde neu beschrieben – am PC `ssh-keygen -R logogateway.local` ausführen, dann neu verbinden |
 | `ssh`: „Permission denied“ | Benutzername oder Passwort falsch (Groß-/Kleinschreibung beachten) |
 | CAN-Test: „Network is down“ oder `networkctl list` zeigt bei `can0` **failed** | `cat /etc/systemd/network/80-can.network` – steht dort `RestartSec`, die Datei mit dem Befehl aus Schritt 5 neu schreiben (der InnoMaker unterstützt das nicht), dann `sudo networkctl reload && sudo networkctl reconfigure can0` |
+| Serieller Adapter fehlt in der Weboberfläche | `ls /dev/serial/by-id/` zeigt nichts → anderer USB-Anschluss/Kabel. Zeigt er etwas: Update holen (siehe *Updates*), ältere Versionen brauchten einen Eintrag in `compose.yaml` |
 | `can0` gibt es nicht | Adapter in anderen USB-Anschluss, `dmesg \| tail` zeigt, ob er erkannt wird |
 | CAN-Test: „kein Busverkehr“ | 1. Zeile *Bitrate* im CAN-Test: steht dort **50000 bit/s**? Sonst Schritt 5 wiederholen. 2. Verkabelung: CAN-H an CAN-H, CAN-L an CAN-L (vertauscht = kein Verkehr), GND verbinden. 3. Abschlusswiderstand: Ist der Pi ein Ende des Busses, am InnoMaker den 120-Ω-Jumper setzen. 4. Regler eingeschaltet? Zum Vergleich am Pi: `candump can0` (aus Paket `can-utils`, Beenden mit Strg + C) |
 | `permission denied` bei `docker` | Schritt 3: `sudo usermod -aG docker $USER` und neu starten |

@@ -8,4 +8,7 @@ __pycache__/
 
 # Installer: nur als GitHub-Release, nicht im Git
 release/
+
+# Docker: Daten (Konfiguration, Aufzeichnung, Logs) gehören nicht ins Git
+docker/data/
 .export-manifest
