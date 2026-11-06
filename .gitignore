@@ -11,4 +11,7 @@ release/
 
 # Docker: Daten (Konfiguration, Aufzeichnung, Logs) gehören nicht ins Git
 docker/data/
+
+# lokal erzeugte PDF-Anleitungen
+docs/*.pdf
 .export-manifest
