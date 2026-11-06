@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Logotherm Gateway</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header>
+  <h1><span class="brand">logo<span>therm</span></span> <span class="sub">Gateway</span></h1>
+  <nav id="nav">
+    <button data-page="dashboard">Dashboard</button>
+    <button data-page="iface">1 Schnittstellen</button>
+    <button data-page="scan">2 Geräte suchen</button>
+    <button data-page="values">3 Werteliste</button>
+    <button data-page="save">4 Speichern</button>
+    <button data-page="status">5 Status</button>
+    <button data-page="history">6 Verlauf</button>
+    <button data-page="params">7 Parameter</button>
+  </nav>
+  <span id="dirty" title="Zur Seite Speichern wechseln">Ungespeicherte Änderungen</span>
+  <button class="btn sec" id="logout" style="display:none">Abmelden</button>
+</header>
+<main id="main"></main>
+<div id="toast"></div>
+<script src="/static/app.js"></script>
+<script src="/static/history.js"></script>
+<script src="/static/params.js"></script>
+<script src="/static/dashboard.js"></script>
+</body>
+</html>

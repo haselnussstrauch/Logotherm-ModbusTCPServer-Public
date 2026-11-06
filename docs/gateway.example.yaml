@@ -1,0 +1,59 @@
+# Beispielkonfiguration Logotherm Modbus-Gateway (Meilenstein 1: Dummy-Werte)
+# Start:  gateway -c docs/gateway.example.yaml run --dummy
+version: 1
+
+service:
+  data_dir: auto          # Windows: %ProgramData%\LogothermGateway, Docker: /data
+  log_level: INFO
+
+safety:
+  write_enabled: false    # globales Schreib-Flag
+  daily_write_budget: 50
+
+can:
+  enabled: false
+  interface: gs_usb       # socketcan | gs_usb | pcan | virtual
+  channel: "0"
+  bitrate: 50000          # 50000 | 20000
+  gateway_address: 0xA0
+
+lc1:
+  byte_timeout_s: 2.0
+
+modbus:
+  bind: 127.0.0.1
+  port: 5020              # 502 braucht unter Linux Root bzw. CAP_NET_BIND_SERVICE
+  allow: [127.0.0.1]
+  word_order: ABCD
+  int16_mirror: true
+  diag_unit_id: 247
+
+web:
+  bind: 127.0.0.1
+  port: 8080
+
+poll:
+  interval_s: 10
+  stale_after_s: 60
+
+devices:
+  - id: can-01
+    bus: can
+    address: 0x01
+    regler_typ: 0x0B00
+    name: LC2 Kessel 1
+    unit_id: 1
+    values:
+      - { nr: 0x0003, reg: 0, name: TK Ist, unit: "°C", decimals: 1, vartyp: 0x04 }
+      - { nr: 0x0002, reg: 2, name: TK Soll, unit: "°C", decimals: 1, vartyp: 0x04 }
+    params:
+      - { nr: 0x0041, reg: 0, name: Beispielparameter, unit: "°C", decimals: 0, vartyp: 0x01,
+          min: 50, max: 90, writable: false }
+  - id: lc1-1
+    bus: lc1
+    port: COM5            # Linux: /dev/serial/by-id/usb-FTDI_...
+    unit_id: 101
+    values:
+      - { k: 1, reg: 0, name: K1, decimals: 2 }
+    params:
+      - { e: 15, reg: 0, name: E15, decimals: 0, vartyp: 0x01, min: 0, max: 65535 }

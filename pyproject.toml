@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "logotherm-gateway"
+version = "0.1.7"
+description = "Modbus-TCP-Gateway für Logotherm-Regler (CAN: LC2 & Co., RS232: LC1)"
+requires-python = ">=3.12,<3.13"
+# Exakte Versionen: requirements.lock. pymodbus bewusst gepinnt (Datastore-API ändert sich zwischen 3.x-Versionen).
+dependencies = [
+    "pymodbus==3.16.2",
+    "python-can[gs-usb]==4.6.1",
+    "pyserial==3.5",
+    "pydantic==2.14.2",
+    "PyYAML==6.0.3",
+    "fastapi==0.162.0",
+    "uvicorn==0.54.0",
+    # libusb-1.0.dll für gs_usb unter Windows (pyusb findet sie sonst nur im PATH)
+    "libusb-package==1.0.30.0; sys_platform == 'win32'",
+]
+
+[project.optional-dependencies]
+dev = ["pytest==9.2.0", "pytest-asyncio==1.4.1.post1", "httpx==0.28.1"]
+
+[project.scripts]
+gateway = "gateway.main:cli"
+
+[tool.setuptools.packages.find]
+include = ["gateway*"]
+
+[tool.setuptools.package-data]
+"gateway.web" = ["static/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+# starlette.testclient empfiehlt httpx2; betrifft nur die Tests, httpx bleibt gepinnt.
+filterwarnings = ["ignore:Using `httpx` with `starlette.testclient` is deprecated"]

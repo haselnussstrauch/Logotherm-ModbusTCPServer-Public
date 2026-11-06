@@ -1,0 +1,13 @@
+# Wird von BuildKit automatisch zu docker/Dockerfile verwendet.
+.venv
+.git
+.github
+**/__pycache__
+**/*.pyc
+*.egg-info
+.pytest_cache
+data
+docker/data
+packaging
+launcher
+tests

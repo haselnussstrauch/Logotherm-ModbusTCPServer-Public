@@ -1,0 +1,1 @@
+"""Weboberfläche (FastAPI) des Gateways."""

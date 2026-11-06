@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+/build/
+/dist/
+*.egg-info/
+
+# Installer: nur als GitHub-Release, nicht im Git
+release/
+.export-manifest

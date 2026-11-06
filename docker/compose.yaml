@@ -1,0 +1,39 @@
+# Logotherm Modbus-Gateway – Docker Compose
+# Start (aus dem Ordner docker/):  docker compose up -d --build
+# Siehe docs/docker.md.
+services:
+  gateway:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: logotherm-gateway:latest
+    container_name: logotherm-gateway
+    restart: unless-stopped
+
+    # Host-Netzwerk: SocketCAN-Schnittstellen (can0) des Hosts sind sichtbar, Modbus 502 und
+    # Web 8080 liegen direkt auf dem Host (keine ports:-Einträge nötig).
+    network_mode: host
+
+    environment:
+      GATEWAY_DATA_DIR: /data
+      # CAN im Container einrichten (nur zusammen mit cap_add: NET_ADMIN unten):
+      # CAN_SETUP: "1"
+      # CAN_IFACE: can0
+      # CAN_BITRATE: "50000"
+
+    volumes:
+      - ./data:/data
+
+    # Serielle LC1-Regler (FTDI): stabilen by-id-Pfad durchreichen und in der Weboberfläche
+    # als Port eintragen (gleicher Pfad im Container).
+    # devices:
+    #   - /dev/serial/by-id/usb-FTDI_FT232R_USB_UART_XXXXXXXX-if00-port0:/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_XXXXXXXX-if00-port0
+
+    # NET_ADMIN wird nur gebraucht, wenn der Container can0 selbst einrichten soll (CAN_SETUP=1).
+    # Richtet der Host can0 ein (systemd-networkd, siehe docs/docker.md), bleibt es auskommentiert.
+    # cap_add:
+    #   - NET_ADMIN
+
+    # Variante ohne Root im Container (Port 502 braucht dann Host-sysctl
+    # net.ipv4.ip_unprivileged_port_start=0 oder einen Port > 1024; /data muss dem User gehören):
+    # user: "1000:1000"

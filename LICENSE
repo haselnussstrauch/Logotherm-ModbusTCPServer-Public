@@ -1,0 +1,45 @@
+Logotherm Modbus-Gateway – Lizenz für private, nicht-kommerzielle Nutzung
+==========================================================================
+
+Copyright (c) 2026 haselnussstrauch (https://github.com/haselnussstrauch)
+
+1. Erlaubte Nutzung
+   Diese Software (Quelltext, Installer, Dokumentation) darf für private, nicht-kommerzielle Zwecke
+   kostenlos verwendet, kopiert, verändert und selbst gebaut werden. Weitergabe – verändert oder
+   unverändert – ist nur nicht-kommerziell, kostenlos und zusammen mit dieser Lizenz erlaubt.
+
+2. Keine kommerzielle Nutzung
+   Jede kommerzielle Nutzung ist untersagt, insbesondere der Verkauf oder die Vermietung der
+   Software oder daraus abgeleiteter Werke, der Einbau in Produkte, die Nutzung im Rahmen
+   entgeltlicher Dienstleistungen (z. B. Installation, Wartung, Fernüberwachung für Dritte) sowie
+   der Betrieb in gewerblichen Anlagen. Für eine kommerzielle Nutzung ist eine gesonderte,
+   schriftliche Erlaubnis des Urhebers nötig.
+
+3. Keine Gewähr, keine Haftung
+   Die Software wird „wie besehen“ und ohne jede Gewährleistung bereitgestellt, weder ausdrücklich
+   noch stillschweigend, insbesondere nicht für Richtigkeit, Eignung für einen bestimmten Zweck oder
+   ungestörten Betrieb. Soweit gesetzlich zulässig, übernehmen weder der Urheber noch die Logotherm
+   Regelsysteme GmbH eine Haftung für Schäden jeglicher Art, die aus der Nutzung oder
+   Nicht-Nutzbarkeit der Software entstehen – auch nicht für Schäden an Heizungsanlagen, Reglern,
+   Gebäuden oder für Folgeschäden.
+
+   Die Software kommuniziert mit Heizungsreglern und kann – wenn das ausdrücklich freigegeben wird –
+   Parameter am Regler verändern. Das ist ein Eingriff in den Betrieb der Anlage. Die Nutzung erfolgt
+   ausschließlich auf eigene Verantwortung.
+
+4. Privates Projekt
+   Dies ist ein privates Projekt des Urhebers und kein Produkt der Logotherm Regelsysteme GmbH.
+   Logotherm hat lediglich Informationen bzw. Code zur Verfügung gestellt und leistet keinen Support.
+   „Logotherm“ und die Produktnamen der Regler sind Namen bzw. Marken der Logotherm Regelsysteme GmbH
+   und werden nur zur Beschreibung der Kompatibilität verwendet.
+
+5. Fremdkomponenten
+   Der Installer enthält Fremdsoftware unter deren eigenen Lizenzen (u. a. Python, pymodbus,
+   python-can, FastAPI, uvicorn, pydantic, pyserial, libusb, WinSW, libwdi/wdi-simple). Für diese
+   Komponenten gelten ausschließlich deren Lizenzbedingungen.
+
+---------------------------------------------------------------------------------------------------
+English summary (the German text above is authoritative): free for private, non-commercial use,
+modification and redistribution under this license; no commercial use without written permission;
+provided "as is" without any warranty; to the extent permitted by law, neither the author nor
+Logotherm Regelsysteme GmbH accept any liability. Private project, not an official Logotherm product.

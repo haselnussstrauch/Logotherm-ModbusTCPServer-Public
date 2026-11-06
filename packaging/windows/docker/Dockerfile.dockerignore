@@ -1,0 +1,16 @@
+# Wird von BuildKit automatisch zu packaging/windows/docker/Dockerfile verwendet.
+.venv
+.git
+.github
+**/__pycache__
+**/*.pyc
+*.egg-info
+.pytest_cache
+/build
+/dist
+/release
+data
+docker/data
+packaging/windows/third_party/*.exe
+packaging/windows/third_party/*.dll
+packaging/windows/driver/wdi-simple.exe

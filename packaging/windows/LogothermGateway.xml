@@ -1,0 +1,38 @@
+<!--
+  WinSW-Konfiguration (kompatibel zu WinSW v2 und v3).
+  Der Installer legt WinSW als  {app}\LogothermGatewayService.exe  und diese Datei als
+  {app}\LogothermGatewayService.xml  ab (WinSW sucht die XML mit gleichem Namen neben der Exe).
+  Der Name LogothermGateway.exe ist dem Launcher vorbehalten.
+-->
+<service>
+  <id>LogothermGateway</id>
+  <name>Logotherm Gateway</name>
+  <description>Modbus-TCP-Gateway für Logotherm-Regler (CAN und RS232)</description>
+
+  <executable>%BASE%\gateway\gateway.exe</executable>
+  <arguments>run</arguments>
+  <workingdirectory>%BASE%\gateway</workingdirectory>
+
+  <env name="GATEWAY_DATA_DIR" value="%ProgramData%\LogothermGateway"/>
+
+  <startmode>Automatic</startmode>
+  <!-- Dienst bei Fehlstart nicht sofort aufgeben: erst nach Netzwerk/USB warten lassen -->
+  <delayedAutoStart>true</delayedAutoStart>
+
+  <!-- Bei Absturz 3x neu starten (10 s, 30 s, 60 s), danach nicht mehr. Zähler nach 1 h zurück. -->
+  <onfailure action="restart" delay="10 sec"/>
+  <onfailure action="restart" delay="30 sec"/>
+  <onfailure action="restart" delay="60 sec"/>
+  <onfailure action="none"/>
+  <resetfailure>1 hour</resetfailure>
+
+  <stoptimeout>15 sec</stoptimeout>
+
+  <!-- WinSW-eigene Logs (Dienststart/-stopp, stdout/stderr des Prozesses) mit Rotation.
+       Das Anwendungslog liegt getrennt in %ProgramData%\LogothermGateway\logs\gateway.log. -->
+  <logpath>%ProgramData%\LogothermGateway\logs</logpath>
+  <log mode="roll-by-size">
+    <sizeThreshold>5120</sizeThreshold>
+    <keepFiles>5</keepFiles>
+  </log>
+</service>

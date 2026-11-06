@@ -1,0 +1,23 @@
+# Standard-Konfiguration, vom Installer nur angelegt, wenn noch keine gateway.yaml existiert.
+# Einstellungen bitte in der Weboberflaeche vornehmen: http://127.0.0.1:8080/
+version: 1
+
+service:
+  data_dir: auto
+  log_level: INFO
+
+can:
+  enabled: false          # in der Weboberflaeche aktivieren, sobald der USB-CAN-Adapter eingerichtet ist
+  interface: gs_usb
+  channel: "0"
+  bitrate: 50000
+
+modbus:
+  bind: 0.0.0.0
+  port: 502
+
+web:
+  bind: 127.0.0.1         # nur dieser PC; Installer-Aufgabe "Weboberflaeche im Netzwerk" setzt 0.0.0.0
+  port: 8080
+
+devices: []
