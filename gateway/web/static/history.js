@@ -181,7 +181,7 @@ async function renderChartCard(box) {
     data = { from: a / 1000, to: b / 1000, series: hist.sel.map((x) => {
       const m = series.find((s) => s.kind === x.kind && s.key === x.key);
       const r = res[`${x.kind}:${x.key}`] || { points: [], bucket: 0, interval: 60 };
-      return { ...x, name: m.name, unit: m.unit || "", nr: m.nr, color: SERIES_COLORS[x.slot], ...r };
+      return { ...x, name: m.name, unit: m.unit || "", nr: m.nr, texts: m.texts || null, color: SERIES_COLORS[x.slot], ...r };
     }) };
     drawCharts(plot, data);
     if (tableBox.dataset.open) drawTable(tableBox, data);
@@ -333,7 +333,9 @@ function drawCharts(box, data) {
         const ok = p && Math.abs(p[0] - snap) <= Math.max(s.bucket, s.interval) * 1.5;
         c.dots[i].setAttribute("visibility", ok ? "visible" : "hidden");
         if (ok) { c.dots[i].setAttribute("cx", xs(p[0])); c.dots[i].setAttribute("cy", c.ys(p[1])); }
-        const val = ok ? fmtVal(p[1]) + (s.unit ? " " + s.unit : "") : "–";
+        const raw = s.bucket <= s.interval * 1.5;               // Einzelwert, kein Mittelwert
+        const tv = ok && raw ? choiceText(s.texts, p[1]) : null;
+        const val = !ok ? "–" : tv != null ? `${tv} (${p[1]})` : fmtVal(p[1]) + (s.unit ? " " + s.unit : "");
         const extra = ok && s.bucket > s.interval * 1.5 ? ` (${fmtVal(p[2])} … ${fmtVal(p[3])})` : "";
         rows.push(h("div", { class: "trow" }, h("span", { class: "tkey", style: `background:${s.color}` }),
           h("b", {}, val), h("span", { class: "hint" }, extra), " ", h("span", {}, s.name)));
@@ -366,6 +368,10 @@ function drawTable(box, data) {
   box.replaceChildren(h("h3", {}, "Tabelle (neueste zuerst)"), h("div", { class: "scroll", style: "max-height:360px" }, h("table", {},
     h("tr", {}, h("th", {}, "Zeit"), data.series.map((s) => h("th", {}, `${s.name}${s.unit ? " [" + s.unit + "]" : ""}`))),
     rows.map((i) => h("tr", {}, h("td", {}, fmtDateTime(new Date((data.from + i * step) * 1000))),
-      maps.map((m) => h("td", { class: "num" }, m.has(i) ? fmtVal(m.get(i)) : "")))))),
+      maps.map((m, j) => {
+        const s = data.series[j], v = m.get(i);
+        const tv = m.has(i) && s.bucket <= s.interval * 1.5 ? choiceText(s.texts, v) : null;
+        return h("td", { class: tv != null ? "" : "num" }, !m.has(i) ? "" : tv != null ? `${tv} (${v})` : fmtVal(v));
+      }))))),
   data.series.some((s) => s.bucket > s.interval * 1.5) ? h("p", { class: "hint" }, "Zusammengefasst: Mittelwerte je Zeitabschnitt. Alle Einzelwerte enthält der CSV-Download des Tages.") : "");
 }

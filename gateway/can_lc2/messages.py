@@ -183,6 +183,54 @@ class IdentifyAntwort:
         return multiframe.make_block(head + name + b"\0")
 
 
+AUSWAHL_HEAD_SIZE = 8   # ANTWORT_AUSWAHLTEXTE ohne texte[1]: Len, Messwert, Sprache, Offset, Anzahl
+
+
+@dataclass(frozen=True)
+class AuswahltexteAntwort:
+    """Antwort 0x08 (``Bus_WriteAuswahltexte``, os2/net/BusOut.cpp:676-770).
+
+    Ein Block enthält bis zu 10 Texte (nullterminiert); Text ``j`` gehört zum Wert ``offset + j``.
+    Längere Listen kommen als mehrere Blöcke mit fortlaufendem ``offset``."""
+    nr: int
+    sprache: int
+    offset: int
+    texte: tuple[str, ...]
+
+    @classmethod
+    def parse(cls, block: bytes) -> AuswahltexteAntwort:
+        if len(block) < AUSWAHL_HEAD_SIZE + 2:
+            raise ValueError("Auswahltexte-Antwort zu kurz")
+        _len, nr, sprache, offset, anzahl = struct.unpack_from("<HHBHB", block)
+        payload = block[AUSWAHL_HEAD_SIZE:len(block) - 2]
+        texte, pos = [], 0
+        for _ in range(anzahl):
+            if pos >= len(payload):
+                raise ValueError(f"Auswahltexte: {anzahl} Texte angekündigt, weniger enthalten")
+            s, pos = _cstr(payload, pos)
+            texte.append(s)
+        return cls(nr, sprache, offset, tuple(texte))
+
+    def build(self) -> bytes:
+        """Wie die Firmware: Kopf + Texte (je mit 0) + 1 Füllbyte (texte[1]) + CRC."""
+        body = struct.pack("<HBHB", self.nr, self.sprache, self.offset, len(self.texte))
+        body += b"".join(encode_text(t) + b"\0" for t in self.texte) + b"\0"
+        return multiframe.make_block(body)
+
+
+def build_auswahltexte(nr: int, lo: int, texte: list[str]) -> list[bytes]:
+    """Aufteilung auf Blöcke wie ``Bus_WriteAuswahltexte``: neuer Block, wenn > 30 Byte oder 10
+    Texte erreicht sind (Simulator)."""
+    blocks, chunk, start, size = [], [], lo, 11
+    for i, t in enumerate(texte):
+        chunk.append(t)
+        size += len(encode_text(t)) + 1
+        if i == len(texte) - 1 or size > 30 or len(chunk) >= 10:
+            blocks.append(AuswahltexteAntwort(nr, 0, start, tuple(chunk)).build())
+            start, chunk, size = lo + i + 1, [], 11
+    return blocks
+
+
 DETAIL_HEAD_SIZE = 32   # sizeof(ANTWORT_MESSWERTDETAIL) - sizeof(Name[1])
 
 

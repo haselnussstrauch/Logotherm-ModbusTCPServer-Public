@@ -199,10 +199,25 @@ class TestCanVerboten:
         with pytest.raises(SafetyViolation):
             tx(cid(kanal, 0x20), anfrage(N["M_TKI"]))
 
-    @pytest.mark.parametrize("sub", [s for s in range(0, 0x100, 8) if s not in (0x00, 0x20, 0x30, 0x38)])
+    @pytest.mark.parametrize("sub", [s for s in range(0, 0x100, 8) if s not in (0x00, 0x08, 0x20, 0x30, 0x38)])
     def test_anfrage_andere_subkanaele(self, sub):
         with pytest.raises(SafetyViolation):
             tx(cid(0x0B, sub), anfrage(N["M_TKI"]))
+
+    def test_auswahltexte_nur_einzeln(self):
+        """Anfrage 0x0B/0x08 (Auswahltexte) ist reines Lesen – nur mit konkreter Nummer."""
+        tx(cid(0x0B, 0x08), anfrage(0x9041))
+        for nr in (0xFFFF, 0x0000):
+            with pytest.raises(SafetyViolation):
+                tx(cid(0x0B, 0x08), anfrage(nr))
+            with pytest.raises(SafetyViolation):
+                check_can_tx(cid(0x0B, 0x08), anfrage(nr), is_extended=True, own_address=OWN,
+                                    regler_typ=None, is_remote_frame=False, allow_enumeration=True)
+
+    def test_bootloader_befehl_bleibt_verboten(self):
+        """Gleicher Subkanal 0x08, aber Befehls-Kanal 0x08 = Bootloader starten."""
+        with pytest.raises(SafetyViolation, match="Bootloader"):
+            tx(cid(0x08, 0x08), anfrage(0x9041))
 
     @pytest.mark.parametrize("sub", [s for s in range(0, 0x100, 8) if s != 0x00])
     def test_befehl_andere_subkanaele(self, sub):

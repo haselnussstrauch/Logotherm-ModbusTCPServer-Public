@@ -153,6 +153,7 @@ class ValueDef(_Model):
     vartyp: int = VarTyp.FLOAT
     out_textauswahl: bool = False         # Wert ist Index einer Textauswahl
     out_type: int | None = Field(None, ge=0, le=0xFF)   # CAN: Ausgabetyp (OUT_*) aus 0x30/0x38
+    texts: dict[int, str] | None = None   # Auswahltexte (Wert -> Text), vom Gerät bzw. fest
     min: float | None = None
     max: float | None = None
 

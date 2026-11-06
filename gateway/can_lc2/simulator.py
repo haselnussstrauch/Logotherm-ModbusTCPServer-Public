@@ -67,6 +67,7 @@ class SimEntry:
     kat: int = 0                   # Anzeige-Kategorie/-Nummer (GetParameterNummer)
     pnr: int = 0
     value: int | float = 0         # aktueller Rohwert (bzw. 8 Byte für ZYKLEN)
+    texte: tuple[str, ...] = ()    # Auswahltexte ab ``min`` (nur OUT_TEXTAUSWAHL)
 
 
 @dataclass
@@ -103,7 +104,9 @@ def profile_lc2() -> SimProfile:
     return SimProfile(
         key="lc2", name="LambdaControl 2", regler_typ=0x0B00, address=0x01, serial=0x00012345,
         values=[
-            _e("M_KSTATUS", "Kessel", VT.CHAR, 0, 10, out=OUT_TEXTAUSWAHL, value=3),
+            _e("M_KSTATUS", "Kessel", VT.CHAR, 0, 10, out=OUT_TEXTAUSWAHL, value=3,
+               texte=("Aus", "Bereit", "Start", "Anheizen", "Heizbetrieb", "Gluterhaltung", "Ausbrand",
+                      "Nachlauf", "Störung", "Service", "Handbetrieb")),   # Beispieltexte (Simulator)
             _e("M_TKS", "Kessel Soll", VT.FLOAT, 1, 150, nachkomma=1, einheit=EH["CELSIUS"], value=80.0),
             _e("M_TKI", "Kesseltemp.", VT.FLOAT, -50, 150, nachkomma=1, einheit=EH["CELSIUS"], value=72.4),
             _e("M_TKRI", "Rücklauftemp.", VT.FLOAT, -50, 150, nachkomma=1, einheit=EH["CELSIUS"], value=61.2),
@@ -501,7 +504,14 @@ class CanSimulator:
                 e = next((x for x in p.params if x.nr == req.nr), None)
                 if e is not None:
                     self._tx_block(self._answer_id(p, 0x38, src), self._detail(e, parameter=True))
-        # andere Subkanäle (0x08 Auswahltexte, 0x28 Fehlerspeicher, …): bewusst nicht simuliert
+        elif sub == 0x08:
+            # Bus_WriteAuswahltexte: nur Einträge mit OUT_TEXTAUSWAHL, sonst keine Antwort
+            e = p.entry(req.nr)
+            if e is not None and (e.out & 0x3F) == OUT_TEXTAUSWAHL:
+                texte = list(e.texte) or [f"Auswahl {i}" for i in range(e.min, e.max + 1)]
+                for block in messages.build_auswahltexte(e.nr, e.min, texte[: e.max - e.min + 1]):
+                    self._tx_block(self._answer_id(p, 0x08, src), block)
+        # andere Subkanäle (0x28 Fehlerspeicher, …): bewusst nicht simuliert
 
     def _detail(self, e: SimEntry, parameter: bool) -> bytes:
         einheit = 0 if (e.out & 0x3F) == OUT_TEXTAUSWAHL else e.einheit

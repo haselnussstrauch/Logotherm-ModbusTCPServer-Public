@@ -37,7 +37,7 @@ from gateway.config import (
     ValueDef,
     VarTyp,
 )
-from gateway.devices.names import display_name, nr_text
+from gateway.devices.names import display_name, nr_text, texts_hint
 from gateway.safety import OUT_CNTSECMIN, OUT_MASK, OUT_SECTOH, OUT_SECTOMIN
 from gateway.store import ValueStore
 
@@ -386,6 +386,8 @@ def _csv_rows(cfg: GatewayConfig) -> Iterator[list[str]]:
     for s in sorted(rm.slots(), key=lambda s: (s.unit_id, s.table != "ir", s.address)):
         device = s.device.id if s.device else "Diagnose"
         hint = WRITE_HINT if s.writable else ""
+        if s.kind == "value" and s.entry is not None and s.entry.texts:
+            hint = "; ".join(x for x in (hint, "Auswahl: " + texts_hint(s.entry.texts)) if x)
         if s.kind == "value" and s.entry is not None and has_int32(s.entry) and not s.writable:
             hint = f"ab 16 777 216 gerundet – exakt auf Register {REG_U32 + s.entry.reg}"
         elif s.kind == "value" and s.entry is not None and has_int32(s.entry):

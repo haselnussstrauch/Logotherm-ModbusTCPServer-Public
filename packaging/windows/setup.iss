@@ -1,12 +1,12 @@
 ﻿; Inno Setup 6 - Installer fuer Logotherm Gateway (Windows)
-; Aufruf (aus packaging/windows/docker/build.sh, im Build-Container):  ISCC.exe /DAppVersion=0.1.7 packaging\windows\setup.iss
+; Aufruf (aus packaging/windows/docker/build.sh, im Build-Container):  ISCC.exe /DAppVersion=0.1.8 packaging\windows\setup.iss
 ; Voraussetzungen vor dem Kompilieren (erledigt docker/build.sh):
 ;   dist\gateway\          PyInstaller-Ausgabe von gateway.spec
 ;   dist\launcher\         PyInstaller-Ausgabe von launcher.spec
 ;   third_party\WinSW-x64.exe   (WinSW, vom Dockerfile geladen)
 
 #ifndef AppVersion
-  #define AppVersion "0.1.7"
+  #define AppVersion "0.1.8"
 #endif
 #define AppName "Logotherm Gateway"
 #define ServiceName "LogothermGateway"

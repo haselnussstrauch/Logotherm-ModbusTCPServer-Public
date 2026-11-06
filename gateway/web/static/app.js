@@ -63,6 +63,18 @@ function num(v, dec) {
 }
 const hex = (n, d) => "0x" + Number(n).toString(16).toUpperCase().padStart(d || 4, "0");
 
+// Auswahltext zum Wert (texts: {"0": "AUS", "1": "EIN"} aus der Konfiguration), sonst null
+function choiceText(texts, v) {
+  if (!texts || v == null || !Number.isInteger(Number(v))) return null;
+  const t = texts[String(Number(v))];
+  return t == null ? null : t;
+}
+// Wert für Tabellen: "Heizbetrieb (4)" bei Auswahl, sonst Zahl
+function numOrText(v, dec, texts) {
+  const t = choiceText(texts, v);
+  return t != null ? `${t} (${Number(v)})` : num(v, dec);
+}
+
 // Fortschrittsauftrag abfragen, bis fertig
 async function runJob(job, box) {
   const bar = h("div", { class: "bar" }, h("div", { style: "width:0%" }));
@@ -374,7 +386,8 @@ function renderValues(box, fromDevice) {
           return h("tr", { class: (r.active ? "" : "off ") + (unsup ? "unsupported " : "") + (r.lock_reason ? "locked" : ""), title: unsup ? "Datentyp wird nicht bereitgestellt" : (r.tip || "") },
             h("td", {}, hex(r.key)), h("td", {}, r.name || "", unsup ? h("i", {}, " (Datentyp wird nicht bereitgestellt)") : ""),
             h("td", {}, r.unit || ""), h("td", { class: "num" }, num(r.min, r.decimals)), h("td", { class: "num" }, num(r.max, r.decimals)),
-            h("td", { class: "num" }, num(r.value, r.decimals)), h("td", { class: "num" }, r.reg == null ? "" : r.reg),
+            h("td", { class: r.texts ? "" : "num", title: r.texts ? Object.entries(r.texts).map(([k, t]) => `${k} = ${t}`).join("\n") : "" },
+              numOrText(r.value, r.decimals, r.texts)), h("td", { class: "num" }, r.reg == null ? "" : r.reg),
             h("td", {}, act), h("td", {}, dash), h("td", { class: "rw", title: r.lock_reason || "" }, wr, r.lock_reason ? h("small", {}, " gesperrt") : ""));
         }))));
   };
@@ -464,7 +477,7 @@ async function refreshStatus() {
     statusDev ? h("h3", {}, "Letzte Werte: " + statusDev) : "",
     statusDev ? h("div", { class: "scroll" }, h("table", {}, h("tr", {}, ["Art", "Nr.", "Register", "Name", "Wert", "Einheit", "Status"].map((t) => h("th", {}, t))),
       vals.map((v) => h("tr", {}, h("td", {}, v.kind === "param" ? "Parameter" : "Messwert"), h("td", {}, hex(v.key)), h("td", {}, v.reg),
-        h("td", {}, v.name), h("td", { class: "num" }, v.value == null ? "-" : num(v.value, 2)), h("td", {}, v.unit || ""),
+        h("td", {}, v.name), h("td", { class: v.text ? "" : "num" }, v.value == null ? "-" : (v.text ? `${v.text} (${v.value})` : num(v.value, 2))), h("td", {}, v.unit || ""),
         h("td", {}, ["OK", "Timeout", "veraltet"][v.status] || v.status))))) : "");
   const lbox = document.getElementById("st-log");
   const pre = h("pre", { class: "log" }, logs.lines.join("\n"));

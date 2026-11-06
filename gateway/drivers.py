@@ -70,6 +70,7 @@ class ValueInfo:
     level: str = ""                   # LC1: Ebene aus LCS1.par
     supported: bool = True            # numerisch bereitstellbar (config.NUMERIC_VARTYPES)
     lock_reason: str | None = None    # gesetzt = darf nie schreibbar werden (safety)
+    texts: dict[int, str] | None = None  # Auswahltexte: Wert -> Text (OUT_TEXTAUSWAHL/ONOFF/YESNO)
 
 
 ProgressCb = Callable[[int, int, str], None]   # (erledigt, gesamt, Text)

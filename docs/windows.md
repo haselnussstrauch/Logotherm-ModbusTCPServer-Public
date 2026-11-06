@@ -62,6 +62,15 @@ von Hand.
 3. Unter *Modbus* die IP-Adressen der Clients (Allowlist) eintragen; leer heißt „alle dürfen“.
 4. Nach Änderungen, die einen Neustart brauchen, im Launcher *Dienst neu starten*.
 
+### Auswahltexte
+
+Manche Werte zeigt der Regler als Text an (z. B. Betriebsart „Automatik“, Kesselstatus „Heizbetrieb“).
+Diese Texte holt das Gateway beim **Laden der Werteliste** vom Regler (Busanfrage 0x0B/0x08, nur
+lesend) und speichert sie in `gateway.yaml`; JA/NEIN und EIN/AUS sind fest hinterlegt. Die
+Weboberfläche zeigt dann den Text mit der Zahl in Klammern, das Parametermenü eine Auswahlliste.
+Per Modbus kommt immer die Zahl; die Zuordnung steht in der Registerliste (Spalte *Hinweis*).
+Nach einem Update auf 0.1.8 je Gerät einmal *Werteliste vom Gerät laden*.
+
 ### Dashboard (Startseite)
 
 Zeigt Dienststatus, letzte Aktualisierung, *Regler x von y online*, die ausgewählten Messwerte als

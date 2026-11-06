@@ -88,6 +88,9 @@ SVC_MESSWERT = (KANAL_ANFRAGE, 0x20)
 SVC_MESSWERT_DETAIL = (KANAL_ANFRAGE, 0x30)
 SVC_PARAMETER_DETAIL = (KANAL_ANFRAGE, 0x38)
 SVC_PARAMETER_SETZEN = (KANAL_BEFEHLE, 0x00)
+#: Auswahltexte (Bus_WriteAuswahltexte, os2/net/BusIn.cpp:181) – reine Leseanfrage auf dem
+#: ANFRAGE-Kanal 0x0B. NICHT verwechseln mit Befehl 0x08/0x08 (Bootloader) – der bleibt verboten.
+SVC_AUSWAHLTEXTE = (KANAL_ANFRAGE, 0x08)
 
 ALLOWED_CAN_SERVICES: dict[tuple[int, int], str] = {
     SVC_IDENTIFY: "Identify",
@@ -95,6 +98,7 @@ ALLOWED_CAN_SERVICES: dict[tuple[int, int], str] = {
     SVC_MESSWERT_DETAIL: "Messwert-Detail",
     SVC_PARAMETER_DETAIL: "Parameter-Detail",
     SVC_PARAMETER_SETZEN: "Parameter schreiben",
+    SVC_AUSWAHLTEXTE: "Auswahltexte",
 }
 
 # Begründungen für ausdrücklich verbotene Kanäle/Dienste (nur für bessere Fehlermeldungen;
@@ -208,8 +212,8 @@ def check_can_tx(arbitration_id: int, data: bytes, *, is_extended: bool, own_add
             raise SafetyViolation(f"Identify: DLC {len(data)} statt 0")
     elif svc in (SVC_MESSWERT_DETAIL, SVC_PARAMETER_DETAIL):
         _check_anfrage(ALLOWED_CAN_SERVICES[svc], data, allow_enumeration)
-    elif svc == SVC_MESSWERT:
-        _check_anfrage(ALLOWED_CAN_SERVICES[svc], data)
+    elif svc in (SVC_MESSWERT, SVC_AUSWAHLTEXTE):
+        _check_anfrage(ALLOWED_CAN_SERVICES[svc], data)   # nur Einzelnummer, nie 0xFFFF
     elif svc == SVC_PARAMETER_SETZEN:
         _check_parameter_setzen(data, regler_typ)
     else:  # pragma: no cover – Whitelist und Zweige müssen übereinstimmen

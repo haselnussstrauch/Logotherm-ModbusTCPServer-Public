@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "logotherm-gateway"
-version = "0.1.7"
+version = "0.1.8"
 description = "Modbus-TCP-Gateway für Logotherm-Regler (CAN: LC2 & Co., RS232: LC1)"
 requires-python = ">=3.12,<3.13"
 # Exakte Versionen: requirements.lock. pymodbus bewusst gepinnt (Datastore-API ändert sich zwischen 3.x-Versionen).

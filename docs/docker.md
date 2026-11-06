@@ -132,7 +132,7 @@ docker build -f docker/Dockerfile -t logotherm-gateway .
 
 # Multi-Arch (einmalig: docker buildx create --use)
 docker buildx build --platform linux/amd64,linux/arm64 -f docker/Dockerfile \
-    -t <registry>/logotherm-gateway:0.1.7 --push .
+    -t <registry>/logotherm-gateway:0.1.8 --push .
 # ohne Registry nur für die eigene Architektur in den lokalen Docker laden:
 docker buildx build --platform linux/arm64 -f docker/Dockerfile -t logotherm-gateway --load .
 ```

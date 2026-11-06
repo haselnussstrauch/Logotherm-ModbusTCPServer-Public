@@ -3,6 +3,15 @@
 Format: je Version ein Abschnitt `## <Version> – <Datum>`. Der Abschnitt der aktuellen Version wird
 beim Veröffentlichen als Release-Text verwendet (`packaging/windows/build-docker.ps1 -Release`).
 
+## 0.1.8 – 2026-11-06
+
+- **Auswahltexte:** Werte, die der Regler als Text anzeigt (z. B. Betriebsart, Kesselstatus), holt
+  das Gateway beim Laden der Werteliste direkt vom Regler – in dessen eingestellter Sprache. Dazu
+  JA/NEIN und EIN/AUS. Die Weboberfläche zeigt den Text (Werteliste, Dashboard, Status, Verlauf),
+  im Parametermenü gibt es eine Auswahlliste. Die Registerliste nennt die Zuordnung.
+  **Modbus liefert weiterhin die Zahl** (Index) – für die Leittechnik ändert sich nichts.
+- Bestehende Anlagen: einmal „Werteliste vom Gerät laden“, damit die Texte übernommen werden.
+
 ## 0.1.7 – 2026-11-06
 
 - **Update-Funktion im Launcher:** prüft beim Start und danach täglich, ob es auf GitHub eine neue

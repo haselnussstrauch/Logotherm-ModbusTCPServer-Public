@@ -373,7 +373,7 @@ def create_app(service) -> FastAPI:
                     "kind": kind, "key": e.key, "unit": e.unit, "min": e.min, "max": e.max,
                     "name": display_name(e.name, e.nr) if dev.bus == "can" else e.name,
                     "decimals": e.decimals, "value": None, "reg": e.reg, "active": e.active,
-                    "dashboard": e.dashboard,
+                    "dashboard": e.dashboard, "texts": e.texts,
                     "writable": bool(getattr(e, "writable", False)), "in_config": True,
                     "supported": e.vartyp in NUMERIC_VARTYPES,
                     "lock_reason": _lock_reason(dev, e.key) if kind == "param" else None, "tip": ""}
@@ -382,7 +382,7 @@ def create_app(service) -> FastAPI:
                                     "writable": False, "in_config": False})
             r.update({"name": v.name, "unit": v.unit, "min": v.min, "max": v.max, "decimals": v.decimals,
                       "value": v.value, "supported": v.supported, "lock_reason": v.lock_reason,
-                      "tip": v.tip})
+                      "tip": v.tip, "texts": v.texts or r.get("texts")})
         for k, val in live.items():
             if k in rows and val is not None:
                 rows[k]["value"] = val
@@ -454,7 +454,13 @@ def create_app(service) -> FastAPI:
     @app.get("/api/history/catalog")
     async def history_catalog(t_from: float = Query(..., alias="from"), t_to: float = Query(..., alias="to")):
         metas = await asyncio.to_thread(service.history.catalog, t_from, t_to)
-        return {"series": [dataclasses.asdict(m) for m in metas]}
+        texts = {}
+        for d in service.cfg.devices:                  # Auswahltexte aus der aktuellen Konfiguration
+            for kind, entries in (("value", d.values), ("param", d.params)):
+                for e in entries:
+                    if e.texts:
+                        texts[(d.id, kind, e.key)] = e.texts
+        return {"series": [{**dataclasses.asdict(m), "texts": texts.get((m.dev, m.kind, m.key))} for m in metas]}
 
     @app.get("/api/history/series")
     async def history_series(device: str, keys: str, t_from: float = Query(..., alias="from"),

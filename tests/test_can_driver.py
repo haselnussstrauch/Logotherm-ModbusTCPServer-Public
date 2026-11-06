@@ -291,7 +291,17 @@ async def test_enumerate_lc2(drv, sim):
     for name in ("P_BUSADR", "P_NACHLEG_KG", "P_CODE"):
         assert ("param", N[name]) not in by
     reqs = requests(sim)
-    assert len(reqs) == 2 and all(r[2][:2] == b"\xff\xff" for r in reqs)
+    subs = [idcodec.decode(r[1]).subkanal for r in reqs]
+    enum = [r for r, s in zip(reqs, subs) if s in (0x30, 0x38)]
+    assert len(enum) == 2 and all(r[2][:2] == b"\xff\xff" for r in enum)
+    # Auswahltexte: je OUT_TEXTAUSWAHL-Eintrag eine Einzelanfrage 0x0B/0x08, nie 0xFFFF
+    texte = [r for r, s in zip(reqs, subs) if s == 0x08]
+    assert texte and all(r[2][:2] != b"\xff\xff" for r in texte)
+    assert all(idcodec.decode(r[1]).kanal == idcodec.KANAL_ANFRAGE for r in texte)
+    ks = by[("value", N["M_KSTATUS"])]
+    assert ks.texts == {0: "Aus", 1: "Bereit", 2: "Start", 3: "Anheizen", 4: "Heizbetrieb", 5: "Gluterhaltung",
+                        6: "Ausbrand", 7: "Nachlauf", 8: "Störung", 9: "Service", 10: "Handbetrieb"}
+    assert by[("param", N["P_KDELP"])].texts == {0: "NEIN", 1: "JA"}        # OUT_YESNO fest
 
 
 async def test_enumerate_out_type_sperre(channel):

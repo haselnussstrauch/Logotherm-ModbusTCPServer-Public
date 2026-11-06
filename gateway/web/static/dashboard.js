@@ -70,8 +70,10 @@ function valueTile(g, v) {
   return h("a", { class: "vtile" + (bad ? " stale" : ""), href: link, "data-key": v.key, title: "Verlauf der letzten 24 Stunden",
     onclick: (e) => { e.preventDefault(); location.hash = link; histFromLink(); go("history"); } },
     h("div", { class: "vname" }, v.name),
-    h("div", { class: "vval" }, dashValue(v.value, v.decimals), v.unit ? h("span", { class: "vunit" }, " " + v.unit) : ""),
-    h("div", { class: "vsub" }, bad ? (v.status === 1 ? "kein Wert" : "veraltet") : v.nr));
+    v.text != null
+      ? h("div", { class: "vval vtext", title: v.text }, v.text)
+      : h("div", { class: "vval" }, dashValue(v.value, v.decimals), v.unit ? h("span", { class: "vunit" }, " " + v.unit) : ""),
+    h("div", { class: "vsub" }, bad ? (v.status === 1 ? "kein Wert" : "veraltet") : (v.text != null ? `${v.nr} · ${dashValue(v.value, 0)}` : v.nr)));
 }
 
 // Nur Werte auffrischen; Parameter-Eingaben bleiben stehen
@@ -94,7 +96,7 @@ function updateDashGroups(d) {
         tr.replaceWith(paramRow(p, g.id, g.name, () => PAGES.dashboard(), true));
         continue;
       }
-      tr.querySelector("td.cur").textContent = dashValue(p.value, p.decimals) + (p.unit ? " " + p.unit : "");
+      tr.querySelector("td.cur").textContent = paramValueText(p);
       tr.lastElementChild.textContent = p.why;
     }
   }

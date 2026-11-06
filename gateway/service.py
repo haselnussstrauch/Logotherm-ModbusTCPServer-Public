@@ -30,7 +30,7 @@ from gateway.config import (
     DeviceConfig, GatewayConfig, ParamDef, ValueDef, assign_all_registers, renumber_registers,
     save_config, suggest_unit_id,
 )
-from gateway.devices.names import display_name
+from gateway.devices.names import display_name, value_text
 from gateway.drivers import BusDriver, DeviceInfo, DeviceTimeout, ValueInfo
 from gateway.errors import SafetyViolation, WriteRejected
 from gateway.history import MIN_FREE_BYTES, History, SeriesMeta
@@ -323,6 +323,7 @@ class Service:
                          "name": display_name(p.name, p.nr) if d.bus == "can" else p.name,
                          "unit": p.unit, "decimals": p.decimals, "min": p.min, "max": p.max,
                          "value": st.value, "status": int(st.status), "writable": p.writable and not lock,
+                         "texts": p.texts, "text": value_text(p.texts, st.value),
                          "can_write": not why, "why": why, "wait_s": wait, "dashboard": p.dashboard})
         return {"device": d.id, "name": d.name, "bus": d.bus, "write_enabled": enabled,
                 "budget_remaining": self.guard.remaining_budget,
@@ -348,7 +349,8 @@ class Service:
                 st = self.store.get(d.id, "value", e.key)
                 values.append({"key": e.key, "nr": _entry_nr(e), "unit": e.unit, "decimals": e.decimals,
                                "name": display_name(e.name, e.nr) if d.bus == "can" else e.name,
-                               "value": st.value, "status": int(st.status)})
+                               "value": st.value, "status": int(st.status), "texts": e.texts,
+                               "text": value_text(e.texts, st.value)})
             params = [p for p in self.param_overview(d.id)["params"] if p["dashboard"]]
             if values or params:
                 groups.append({"id": d.id, "name": d.name or d.id, "online": ds.online, "values": values,
@@ -497,7 +499,8 @@ class Service:
         params = {p.key: p for p in dev.params}
         for i in infos:
             meta = dict(name=i.name[:80], unit=i.unit, decimals=max(0, min(6, i.decimals)), vartyp=i.vartyp,
-                        out_textauswahl=i.out_textauswahl, out_type=i.out_type, min=i.min, max=i.max)
+                        out_textauswahl=i.out_textauswahl, out_type=i.out_type, min=i.min, max=i.max,
+                        texts=dict(i.texts) if i.texts else None)
             if i.kind == "value":
                 cur = values.get(i.key)
                 if cur is None:
@@ -686,7 +689,7 @@ class Service:
                 st = self.store.get(d.id, kind, e.key)
                 name = display_name(e.name, e.nr) if d.bus == "can" else e.name
                 out.append({"kind": kind, "key": e.key, "reg": e.reg, "name": name, "unit": e.unit,
-                            "value": st.value, "status": int(st.status),
+                            "value": st.value, "status": int(st.status), "text": value_text(e.texts, st.value),
                             "writable": bool(getattr(e, "writable", False)) and self.cfg.safety.write_enabled})
         return out
 

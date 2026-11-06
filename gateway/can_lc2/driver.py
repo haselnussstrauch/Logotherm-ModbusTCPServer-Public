@@ -272,7 +272,7 @@ class CanDriver:
                          out_textauswahl=(out & safety.OUT_MASK) == safety.OUT_TEXTAUSWAHL,
                          min=lim(det.min), max=lim(det.max), default=default,
                          value=self._det_value(det) if numeric else None, tip=det.tip,
-                         supported=numeric, lock_reason=lock)
+                         supported=numeric, lock_reason=lock, texts=names.fixed_texts(out))
 
     async def enumerate(self, device: DeviceConfig, progress: ProgressCb | None = None) -> list[ValueInfo]:
         """Werteliste per 0x30 und 0x38 mit Nr=0xFFFF (nur auf Knopfdruck – große Antwortflut)."""
@@ -304,11 +304,56 @@ class CanDriver:
             if progress:
                 progress(len(infos), len(infos) + 1, f"{text}: {len(blocks)} Einträge")
         result = sorted(infos.values(), key=lambda i: (i.kind != "value", i.key))
+        await self._load_texts(client, device, result, progress)
         if progress:
             progress(len(result), len(result), f"{len(result)} Einträge")
         if not result:
             raise DeviceTimeout(f"{device.id}: keine Werteliste erhalten")
         return result
+
+    async def _load_texts(self, client: CanClient, device: DeviceConfig, infos: list[ValueInfo],
+                          progress: ProgressCb | None) -> None:
+        """Auswahltexte (Anfrage 0x0B/0x08) für alle Einträge mit OUT_TEXTAUSWAHL – vom Gerät in
+        dessen eingestellter Sprache. Fehlt die Antwort, bleibt es bei der Zahl."""
+        todo = [i for i in infos if i.out_textauswahl and i.supported and i.min is not None and i.max is not None]
+        seen: dict[int, dict[int, str]] = {}
+        for n, info in enumerate(todo):
+            if progress:
+                progress(n, len(todo), f"Auswahltexte {n + 1}/{len(todo)}")
+            if info.key in seen:                      # Messwert und Parameter mit gleicher Nummer
+                info.texts = dict(seen[info.key])
+                continue
+            try:
+                texts = await self.read_auswahltexte(client, device, info.key, int(info.min), int(info.max))
+            except (DeviceTimeout, ProtocolError) as exc:
+                log.info("%s: keine Auswahltexte für %#06x (%s)", device.id, info.key, exc)
+                continue
+            if texts:
+                info.texts = seen[info.key] = texts
+
+    async def read_auswahltexte(self, client: CanClient, device: DeviceConfig, nr: int,
+                                lo: int, hi: int) -> dict[int, str]:
+        """Wert -> Text für ``lo..hi``. Die Firmware sendet bis zu 10 Texte je Block."""
+        addr = self._check_device(device)
+        if not 0 <= hi - lo <= 255:
+            return {}
+        blocks = await client.request(addr, idcodec.KANAL_ANFRAGE, 0x08, messages.build_anfrage(nr),
+                                      mode="enum", regler_typ=device.regler_typ, retries=0,
+                                      idle_s=0.4, max_s=10.0)
+        assert isinstance(blocks, list)
+        out: dict[int, str] = {}
+        for block in blocks:
+            try:
+                ans = messages.AuswahltexteAntwort.parse(block)
+            except ValueError as exc:
+                log.warning("%s: Auswahltexte %#06x unlesbar: %s", device.id, nr, exc)
+                continue
+            if ans.nr != nr:
+                continue
+            for j, text in enumerate(ans.texte):
+                if lo <= ans.offset + j <= hi and text.strip():
+                    out[ans.offset + j] = text.strip()
+        return out
 
     # ===== Lesen ================================================================================
     async def _value_meta(self, client: CanClient, device: DeviceConfig, v: ValueDef) -> _Meta | None:
