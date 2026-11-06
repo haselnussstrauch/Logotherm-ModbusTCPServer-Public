@@ -38,9 +38,10 @@ Leittechnik, SPS, Home Assistant & Co. Mit Weboberfläche, Dashboard, Aufzeichnu
 Voraussetzungen: Windows 10/11 64 Bit (x64). Ausführlich: [docs/windows.md](docs/windows.md).
 Updates meldet der Launcher selbst.
 
-## Docker (Linux)
+## Raspberry Pi / Linux (Docker)
 
-Siehe [docs/docker.md](docs/docker.md) – Start mit `docker compose up -d --build` im Ordner `docker/`.
+**Schritt-für-Schritt-Anleitung für den Raspberry Pi (auch ohne Linux-Kenntnisse):**
+[docs/raspberry-pi.md](docs/raspberry-pi.md). Technische Details zu Docker: [docs/docker.md](docs/docker.md).
 
 ## Selbst bauen
 
