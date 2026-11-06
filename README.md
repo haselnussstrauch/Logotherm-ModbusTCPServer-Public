@@ -11,7 +11,7 @@ Leittechnik, SPS, Home Assistant & Co. Mit Weboberfläche, Dashboard, Aufzeichnu
 ## Was es kann
 
 - **Regler:** über CAN (LambdaControl 2, MultiControl 2, LambdaControl 1 BSB, Erweiterungen,
-  Zündung, WRS-D, O2-Sonde) mit dem USB-CAN-Adapter *InnoMaker USB2CAN*, und über RS232
+  Zündung, WRS-D, O2-Sonde) mit dem USB-CAN-Adapter *InnoMaker USB2CAN* ([getesteter Adapter bei Amazon](https://www.amazon.de/dp/B09K3LL93Q)), und über RS232
   (LambdaControl 1) mit einem FTDI-USB-Seriell-Adapter.
 - **Modbus TCP:** je Regler eine Unit-ID; Messwerte als Float32 (FC 04), Parameter (FC 03/16),
   Status je Wert, Gerätestatus, Diagnose-Unit 247. Registerliste als CSV.
