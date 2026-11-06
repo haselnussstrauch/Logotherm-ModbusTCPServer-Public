@@ -1,8 +1,11 @@
 # Logotherm-Gateway auf dem Raspberry Pi – Schritt für Schritt
 
 Diese Anleitung bringt das Gateway auf einem **Raspberry Pi 400** zum Laufen (gilt genauso für
-Raspberry Pi 4 und 5). Vorkenntnisse in Linux sind nicht nötig: Du tippst bzw. kopierst die grau
-hinterlegten Befehle der Reihe nach ins **Terminal** und drückst jeweils **Enter**.
+Raspberry Pi 4 und 5). Vorkenntnisse in Linux sind nicht nötig: Du kopierst die grau hinterlegten Befehle der Reihe nach
+in ein Befehlsfenster und drückst jeweils **Enter**.
+
+**Kein Bildschirm nötig:** Der Pi wird komplett vom Windows-PC aus eingerichtet – über das Netzwerk
+per **SSH** (ein Befehlsfenster auf dem PC, das auf dem Pi arbeitet) und danach im Browser.
 
 > **Gut zu wissen:** Befehle mit `sudo` fragen manchmal nach deinem Passwort (das vom Pi-Benutzer).
 > Beim Tippen erscheinen dabei **keine Sternchen** – einfach blind eintippen und Enter drücken.
@@ -15,12 +18,12 @@ Dauer: etwa 1 Stunde, davon die meiste Zeit Warten.
 
 | | |
 |---|---|
-| Raspberry Pi 400 | mit **originalem Netzteil** (USB-C), Maus, Bildschirm (Micro-HDMI-Kabel) |
+| Raspberry Pi 400 | mit **originalem Netzteil** (USB-C) – Bildschirm und Maus sind **nicht** nötig |
 | microSD-Karte | mindestens 16 GB, gute Marke (z. B. SanDisk/Samsung, „A1“ oder „A2“) |
 | Netzwerk | am besten **LAN-Kabel** zum Router (WLAN geht auch) und Internet |
 | CAN-Adapter | InnoMaker USB2CAN (für LambdaControl 2, MultiControl 2 usw.) |
 | optional | FTDI-USB-Seriell-Adapter (nur für eine LambdaControl 1 über RS232) |
-| ein PC | um die SD-Karte zu beschreiben |
+| ein Windows-PC | im selben Netz, mit SD-Kartenleser – zum Beschreiben der Karte und zum Einrichten |
 
 ---
 
@@ -31,31 +34,50 @@ Am **PC**:
 1. **Raspberry Pi Imager** herunterladen und installieren: <https://www.raspberrypi.com/software/>
 2. SD-Karte in den PC stecken, Imager starten.
 3. *Raspberry-Pi-Modell* → **Raspberry Pi 400**.
-4. *Betriebssystem* → **Raspberry Pi OS (64-bit)**. Wichtig: **64-bit**, nicht 32-bit.
+4. *Betriebssystem* → *Raspberry Pi OS (other)* → **Raspberry Pi OS Lite (64-bit)**.
+   Wichtig: **64-bit**. „Lite“ ist die Version ohne Desktop – ideal ohne Bildschirm
+   (die normale „Raspberry Pi OS (64-bit)“ funktioniert aber genauso).
 5. *SD-Karte* → deine Karte auswählen → **Weiter**.
 6. **Anpassung** (Imager 2.x: Seiten links nacheinander; ältere Imager: „Einstellungen bearbeiten“):
    - **Hostname:** `logogateway`
    - **Lokalisierung:** Zeitzone Europe/Vienna (bzw. Europe/Berlin), Tastatur de
    - **Benutzer:** Benutzername und Passwort festlegen (merken!)
-   - **WLAN:** nur eintragen, wenn du kein LAN-Kabel verwendest
+   - **WLAN:** nur eintragen, wenn du kein LAN-Kabel verwendest (Land: AT bzw. DE).
+     Besser ist aber ein LAN-Kabel – dann findet der PC den Pi sicher.
    - **Fernzugriff (SSH):** **SSH aktivieren → Ein**, *Passwort zur Authentifizierung verwenden*.
-     Damit kannst du den Pi später auch ohne Bildschirm vom PC aus bedienen (siehe unten).
+     **Unbedingt einschalten** – ohne SSH kommst du ohne Bildschirm nicht auf den Pi.
    - *Raspberry Pi Connect:* nicht nötig, aus lassen
    - **Schreiben** → Warnung bestätigen. Der Imager schreibt und prüft die Karte (5–15 min).
-7. SD-Karte in den Pi 400 stecken (Schlitz hinten), LAN-Kabel, Maus und Bildschirm anschließen,
-   **zuletzt** das Netzteil. Der Pi startet, das dauert beim ersten Mal ein paar Minuten.
+7. SD-Karte in den Pi 400 stecken (Schlitz hinten), LAN-Kabel anschließen, **zuletzt** das
+   Netzteil. Der erste Start dauert **2–5 Minuten** (der Pi startet dabei evtl. einmal neu).
 
-Wenn der Desktop erscheint: oben links auf das schwarze Symbol **Terminal** klicken
-(oder Menü → Zubehör → Terminal). Alle folgenden Befehle gehören in dieses Fenster.
+## Schritt 1b – Vom PC aus mit dem Pi verbinden (SSH)
 
-> **Kopieren und Einfügen im Terminal:** Einfügen mit **Strg + Umschalt + V** (nicht nur Strg + V)
-> oder Rechtsklick → *Einfügen*.
+Am **PC**:
 
-> **Ohne Bildschirm (per SSH vom PC):** Am Windows-PC *Eingabeaufforderung* oder *PowerShell*
-> öffnen und `ssh <benutzer>@logogateway.local` eingeben (klappt `.local` nicht, die IP-Adresse
-> des Pi verwenden, siehe Schritt 8). Beim ersten Mal die Frage mit `yes` bestätigen, dann das
-> Passwort eingeben (es wird beim Tippen nicht angezeigt). Danach funktionieren alle Befehle
-> genauso wie im Terminal am Pi. Einfügen dort mit Rechtsklick.
+1. Startmenü → **PowerShell** (oder *Terminal* / *Eingabeaufforderung*) öffnen.
+2. Eingeben – statt `pi` deinen Benutzernamen aus Schritt 1:
+
+   ```powershell
+   ssh pi@logogateway.local
+   ```
+
+3. Beim ersten Mal kommt die Frage *Are you sure you want to continue connecting?* → `yes` tippen,
+   Enter.
+4. Passwort eingeben (beim Tippen erscheint **nichts**) → Enter.
+
+Steht vorne eine Zeile wie `pi@logogateway:~ $`, bist du auf dem Pi. **Alle folgenden Befehle
+gehören in dieses Fenster.**
+
+> **Einfügen:** in PowerShell mit **Rechtsklick** (oder Strg + V).
+
+> **Klappt `logogateway.local` nicht** („Could not resolve hostname“ oder keine Antwort):
+> - 2 Minuten warten und erneut versuchen,
+> - sonst im **Router** (z. B. FritzBox: *Heimnetz → Netzwerk*) das Gerät `logogateway` suchen und
+>   dessen IP-Adresse verwenden, z. B. `ssh pi@192.168.6.40`.
+
+> **Nach jedem Neustart des Pi** (`sudo reboot`) bricht die Verbindung ab („Connection closed“).
+> Eine Minute warten, dann denselben `ssh`-Befehl wieder eingeben (Pfeiltaste ↑ holt ihn zurück).
 
 ---
 
@@ -71,7 +93,7 @@ Das dauert einige Minuten. Danach neu starten:
 sudo reboot
 ```
 
-Nach dem Neustart wieder das **Terminal** öffnen.
+Nach etwa einer Minute wieder per `ssh` verbinden (Schritt 1b).
 
 ---
 
@@ -91,7 +113,7 @@ sudo usermod -aG docker $USER
 sudo reboot
 ```
 
-Nach dem Neustart Terminal öffnen und prüfen:
+Nach dem Neustart wieder per `ssh` verbinden und prüfen:
 
 ```bash
 docker --version
@@ -217,7 +239,8 @@ Das Gateway startet ab jetzt **automatisch bei jedem Einschalten** des Pi.
 hostname -I
 ```
 
-Die erste Zahl (z. B. `192.168.6.40`) ist die Adresse des Pi im Netz. Tipp: Im Router für den Pi eine
+Die erste Zahl (z. B. `192.168.6.40`) ist die Adresse des Pi im Netz (meist geht auch einfach
+`logogateway.local`). Tipp: Im Router für den Pi eine
 **feste IP-Adresse** (DHCP-Reservierung) einstellen – die Leittechnik braucht eine Adresse, die sich
 nicht ändert.
 
@@ -225,9 +248,8 @@ nicht ändert.
 
 ## Schritt 9 – Einrichten in der Weboberfläche
 
-1. Browser öffnen:
-   - am Pi selbst: <http://localhost:8080>
-   - an einem PC oder Smartphone im selben Netz: `http://<Adresse des Pi>:8080`
+1. Am PC (oder Smartphone im selben Netz) den Browser öffnen:
+   `http://<Adresse des Pi>:8080`, z. B. `http://192.168.6.40:8080` oder <http://logogateway.local:8080>
 2. **Sofort ein Passwort festlegen** (mindestens 6 Zeichen). Bis dahin ist die Oberfläche für jeden
    im Netz offen.
 3. **1 Schnittstellen → CAN-Bus:**
@@ -276,8 +298,8 @@ Alles Wichtige (Einstellungen, Passwort, Aufzeichnung, Logs) liegt im Ordner
   aus dem Internet. Ohne Internet kann die Uhr nach einem Stromausfall falsch gehen – dann stimmen die
   Zeitstempel der Aufzeichnung nicht. Abhilfe: Internetzugang lassen oder einen Zeitserver im eigenen
   Netz eintragen.
-- **Ausschalten:** Nicht einfach den Stecker ziehen, sondern `sudo poweroff` und warten, bis die
-  grüne LED aus ist. Plötzliches Abschalten kann die SD-Karte beschädigen.
+- **Ausschalten:** Nicht einfach den Stecker ziehen, sondern per `ssh` verbinden, `sudo poweroff`
+  eingeben und warten, bis die grüne LED aus ist. Plötzliches Abschalten kann die SD-Karte beschädigen.
 - **SD-Karte:** Für den Dauerbetrieb ist eine gute Karte wichtig. Noch robuster: Pi von einer
   USB-SSD starten.
 - Schreiben auf die Regler ist ab Werk **aus** und nur für freigegebene Parameter möglich.
@@ -288,6 +310,10 @@ Alles Wichtige (Einstellungen, Passwort, Aufzeichnung, Logs) liegt im Ordner
 
 | Problem | Lösung |
 |---|---|
+| `ssh` findet `logogateway.local` nicht | IP-Adresse aus dem Router verwenden; LAN-Kabel steckt? Pi fertig gestartet (2–5 min)? |
+| `ssh`: „Connection refused“ | SSH wurde im Imager nicht eingeschaltet → Karte neu beschreiben (Schritt 1, Fernzugriff) |
+| `ssh`: „REMOTE HOST IDENTIFICATION HAS CHANGED“ | Karte wurde neu beschrieben – am PC `ssh-keygen -R logogateway.local` ausführen, dann neu verbinden |
+| `ssh`: „Permission denied“ | Benutzername oder Passwort falsch (Groß-/Kleinschreibung beachten) |
 | `can0` gibt es nicht | Adapter in anderen USB-Anschluss, `dmesg \| tail` zeigt, ob er erkannt wird |
 | CAN-Test: „kein Busverkehr“ | Verkabelung/Abschlusswiderstand am Bus prüfen; Bitrate (50 oder 20 kbit/s) stimmt? |
 | `permission denied` bei `docker` | Schritt 3: `sudo usermod -aG docker $USER` und neu starten |
