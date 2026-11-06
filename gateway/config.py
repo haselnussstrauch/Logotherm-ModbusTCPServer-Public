@@ -111,6 +111,8 @@ class Lc1Defaults(_Model):
 
 
 class ModbusConfig(_Model):
+    #: aus = nur Weboberfläche/Dashboard/Aufzeichnung, kein Modbus-Port offen
+    enabled: bool = True
     bind: str = "0.0.0.0"
     port: int = Field(502, ge=1, le=65535)
     allow: list[str] = []                 # IP/CIDR-Allowlist; leer = alle (Warnung!)
@@ -341,7 +343,7 @@ def load_config(path: str | Path) -> GatewayConfig:
     raw = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
     cfg = GatewayConfig.model_validate(raw)
     assign_all_registers(cfg)
-    if not cfg.modbus.allow:
+    if cfg.modbus.enabled and not cfg.modbus.allow:
         log.warning("Modbus-IP-Allowlist ist leer: JEDER Client im Netz darf zugreifen!")
     return cfg
 

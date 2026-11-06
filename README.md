@@ -14,7 +14,8 @@ Leittechnik, SPS, Home Assistant & Co. Mit Weboberfläche, Dashboard, Aufzeichnu
   Zündung, WRS-D, O2-Sonde) mit dem USB-CAN-Adapter *InnoMaker USB2CAN* ([getesteter Adapter bei Amazon](https://www.amazon.de/dp/B09K3LL93Q)), und über RS232
   (LambdaControl 1) mit einem FTDI-USB-Seriell-Adapter ([getesteter Adapter: DIGITUS DA-70156 bei Amazon](https://www.amazon.de/dp/B0030IT780)).
 - **Modbus TCP:** je Regler eine Unit-ID; Messwerte als Float32 (FC 04), Parameter (FC 03/16),
-  Status je Wert, Gerätestatus, Diagnose-Unit 247. Registerliste als CSV.
+  Status je Wert, Gerätestatus, Diagnose-Unit 247. Registerliste als CSV. Abschaltbar, wenn nur das
+  Dashboard gebraucht wird.
 - **Weboberfläche:** Geräte suchen, Werte auswählen, Dashboard, Verlauf mit Diagrammen,
   Parameter setzen – am PC und vom Smartphone im lokalen Netz (mit Passwort).
 - **Aufzeichnung:** alle Werte (Standard alle 60 s, 14 Tage), tageweise löschbar, CSV-Export.

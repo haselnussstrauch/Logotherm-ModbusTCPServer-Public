@@ -71,7 +71,8 @@ async def _run(cfg: GatewayConfig, path: Path, args: argparse.Namespace) -> None
     stop = asyncio.Event()
     _install_stop(stop)
     await svc.start(web=not args.no_web)
-    log.info("Gateway %s läuft – Modbus %s:%d, Web %s:%d%s", __version__, cfg.modbus.bind, cfg.modbus.port,
+    mb = f"{cfg.modbus.bind}:{cfg.modbus.port}" if cfg.modbus.enabled else "aus"
+    log.info("Gateway %s läuft – Modbus %s, Web %s:%d%s", __version__, mb,
              cfg.web.bind, cfg.web.port, " (Dummy-Werte)" if args.dummy else "")
     try:
         await stop.wait()

@@ -38,7 +38,12 @@ function renderDashTiles(d) {
       d.last_update ? d.last_update.replace("T", " ") : "noch keine Werte", fresh ? "" : "warn"),
     tile("Regler online", `${d.online} von ${d.total}`,
       offline.length ? "offline: " + offline.map((x) => x.name).join(", ") : (d.total ? "alle erreichbar" : "keine Geräte konfiguriert"),
-      d.total && offline.length ? "warn" : ""));
+      d.total && offline.length ? "warn" : ""),
+    tile("Modbus TCP", d.modbus && d.modbus.enabled
+      ? h("span", {}, h("span", { class: "dot " + (d.modbus.running ? "on" : "offl") }), d.modbus.running ? "aktiv" : "nicht gestartet")
+      : "aus",
+      d.modbus && d.modbus.enabled ? `Port ${d.modbus.port}` : "nur Dashboard/Weboberfläche",
+      d.modbus && d.modbus.enabled && !d.modbus.running ? "warn" : ""));
   const warns = d.warnings || [];
   document.getElementById("dash-warn").replaceChildren(...warns.map((w) => h("div", { class: /allowlist|passwort/i.test(w) ? "err" : "warn" }, w)));
 }

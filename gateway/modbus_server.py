@@ -144,8 +144,15 @@ class ModbusGateway:
         self._restart_task: asyncio.Task | None = None
 
     # --- Lebenszyklus ---
+    @property
+    def running(self) -> bool:
+        return self._server is not None
+
     async def start(self) -> None:
         m = self.cfg.modbus
+        if not m.enabled:
+            log.info("Modbus-TCP-Server ist deaktiviert (modbus.enabled = false)")
+            return
         if not self.allowlist.networks:
             log.warning("Modbus-IP-Allowlist ist leer: JEDER Client im Netz darf zugreifen!")
         server = _GatewayServer(self, (m.bind, m.port))
@@ -173,16 +180,19 @@ class ModbusGateway:
         self.map.rebuild(cfg)
         self.allowlist = IpAllowlist(cfg.modbus.allow)
         self.cfg = cfg
-        if not self.allowlist.networks:
+        if cfg.modbus.enabled and not self.allowlist.networks:
             log.warning("Modbus-IP-Allowlist ist leer: JEDER Client im Netz darf zugreifen!")
         log.info("Modbus-Konfiguration neu geladen")
-        if self._server is not None and (old.bind, old.port) != (cfg.modbus.bind, cfg.modbus.port):
+        new = cfg.modbus
+        if new.enabled != old.enabled or (
+                self._server is not None and (old.bind, old.port) != (new.bind, new.port)):
             self._restart_task = asyncio.ensure_future(self._restart())
             return self._restart_task
         return None
 
     async def _restart(self) -> None:
-        log.info("Modbus-Bind-Adresse geändert, Listener wird neu gestartet")
+        if self._server is not None:
+            log.info("Modbus-Einstellungen geändert, Listener wird neu gestartet")
         await self.stop()
         await self.start()
 

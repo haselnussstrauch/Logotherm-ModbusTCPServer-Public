@@ -17,6 +17,10 @@ beim Veröffentlichen als Release-Text verwendet (`packaging/windows/build-docke
   automatisch in der Weboberfläche, auch später angesteckte; der Eintrag in `compose.yaml` entfällt.
   Wer ihn früher von Hand eingetragen hat: vor dem Update `git checkout docker/compose.yaml`.
 
+- **Modbus-TCP-Server abschaltbar** (*1 Schnittstellen → Modbus-TCP-Server aktiv*), z. B. wenn nur
+  das Dashboard gebraucht wird. Kein Modbus-Port offen, keine Allowlist-Warnung; ein/aus ohne Neustart.
+  Das Dashboard zeigt den Modbus-Zustand als eigene Kachel.
+
 ## 0.1.8 – 2026-11-06
 
 - **Auswahltexte:** Werte, die der Regler als Text anzeigt (z. B. Betriebsart, Kesselstatus), holt

@@ -239,7 +239,8 @@ nicht ändert.
    - Haken bei **CAN-Bus verwenden**
    - Adapter **`socketcan`**, Kanal **`can0`**, Bitrate **50 kbit/s** (bzw. 20)
    - **Übernehmen (Entwurf)**, dann **CAN-Adapter testen** – alles sollte „OK“ sein
-4. **1 Schnittstellen → Modbus-TCP-Server:** unter *Erlaubte Clients* die IP-Adresse der
+4. **1 Schnittstellen → Modbus-TCP-Server:** Brauchst du nur das Dashboard (keine Leittechnik/SPS),
+   den Haken bei **Modbus-TCP-Server aktiv** entfernen → **Übernehmen**. Sonst unter *Erlaubte Clients* die IP-Adresse der
    Leittechnik bzw. SPS eintragen (sonst darf jedes Gerät im Netz zugreifen) → **Übernehmen**.
 5. **2 Geräte suchen:** *Suche starten* → gefundene Regler übernehmen. (LambdaControl 1 über RS232:
    den seriellen Anschluss ankreuzen.)

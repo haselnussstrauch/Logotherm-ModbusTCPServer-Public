@@ -335,3 +335,39 @@ async def test_dummy_feeder_fills_store():
     v = store.get("hk1", "value", 1).value
     assert v == round(v, 1)
     assert struct.pack(">f", v)       # darstellbar
+
+
+# --- deaktivierbar ----------------------------------------------------------------------------
+def _port_open(port: int) -> bool:
+    with socket.socket() as s:
+        s.settimeout(0.5)
+        return s.connect_ex(("127.0.0.1", port)) == 0
+
+
+async def test_deaktiviert_oeffnet_keinen_port(caplog):
+    port = free_port()
+    cfg = make_cfg(port, enabled=False, allow=[])
+    gw = ModbusGateway(cfg, ValueStore(), make_dummy_write_handler(ValueStore()))
+    with caplog.at_level(logging.INFO, logger="gateway.modbus_server"):
+        await gw.start()
+    try:
+        assert not gw.running and not _port_open(port)
+        assert not any("Allowlist ist leer" in r.getMessage() for r in caplog.records)
+        assert any("deaktiviert" in r.getMessage() for r in caplog.records)
+    finally:
+        await gw.stop()
+
+
+async def test_reload_schaltet_ein_und_aus():
+    port = free_port()
+    store = ValueStore()
+    gw = ModbusGateway(make_cfg(port, enabled=False), store, make_dummy_write_handler(store))
+    await gw.start()
+    try:
+        await gw.reload(make_cfg(port, enabled=True))
+        assert gw.running and _port_open(port)
+        await gw.reload(make_cfg(port, enabled=False))
+        assert not gw.running and not _port_open(port)
+        assert gw.reload(make_cfg(port, enabled=False)) is None      # unverändert: nichts zu tun
+    finally:
+        await gw.stop()

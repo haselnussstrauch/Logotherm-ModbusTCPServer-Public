@@ -104,3 +104,16 @@ def test_warnung_ohne_passwort_im_netz(tmp_path):
     assert any("ohne Passwort" in w for w in svc.warnings())
     svc.set_password("geheim123")
     assert not any("ohne Passwort" in w for w in svc.warnings())
+
+
+def test_modbus_aus_im_dashboard_ohne_allowlist_warnung(tmp_path):
+    svc = make_svc(tmp_path)
+    svc.cfg.modbus.allow = []
+    assert any("Allowlist" in w for w in svc.warnings())
+    assert svc.dashboard()["modbus"]["enabled"] is True
+    svc.cfg.modbus.enabled = False
+    d = svc.dashboard()
+    assert d["modbus"] == {"enabled": False, "running": False, "bind": svc.cfg.modbus.bind,
+                           "port": svc.cfg.modbus.port}
+    assert not any("Allowlist" in w for w in d["warnings"])
+    assert svc.status()["modbus"]["enabled"] is False

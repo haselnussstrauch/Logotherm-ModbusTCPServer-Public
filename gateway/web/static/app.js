@@ -183,12 +183,13 @@ PAGES.iface = async function () {
     portsBox, h("button", { class: "btn sec", onclick: () => loadPorts(portsBox) }, "Neu einlesen"));
 
   const mbFields = [
+    field("modbus", "enabled", "Modbus-TCP-Server aktiv", "bool"),
     field("modbus", "bind", "Bind-Adresse", "text"),
     field("modbus", "port", "Port", "number"),
     field("modbus", "word_order", "Wortreihenfolge Float32", "select", ["ABCD", "CDAB"]),
     field("modbus", "int16_mirror", "Zusätzlich Int16-Spiegel bereitstellen", "bool"),
     field("modbus", "allow", "Erlaubte Clients (IP/Netz, Allowlist)", "list")];
-  const mbCard = sectionCard("Modbus-TCP-Server", "modbus", mbFields, h("p", { class: "hint" }, "Leere Allowlist = jeder Client im Netz darf zugreifen!"));
+  const mbCard = sectionCard("Modbus-TCP-Server", "modbus", mbFields, h("p", { class: "hint" }, "Aus = nur Weboberfläche, Dashboard und Aufzeichnung (kein Modbus-Port offen). Leere Allowlist = jeder Client im Netz darf zugreifen!"));
   // sectionCard liest aus der eigenen Box; Felder dort einsetzen
   const pollCard = sectionCard("Abfrage", "poll", [field("poll", "interval_s", "Poll-Intervall (s)", "number", { step: "any" }),
     field("poll", "stale_after_s", "Wert gilt als veraltet nach (s)", "number", { step: "any" })]);

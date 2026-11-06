@@ -78,6 +78,10 @@ Kacheln (Klick → Verlauf der letzten 24 h) und einen Schnellzugriff auf ausgew
 (Setzen wie unter *7 Parameter*, gleiche Prüfungen). Auswahl in der *3 Werteliste*, Spalte
 **Dashboard**, dann *Änderungen in Entwurf übernehmen* und *4 Speichern*. Aktualisiert sich alle 5 s.
 
+**Nur Dashboard, ohne Leittechnik:** Unter *1 Schnittstellen → Modbus-TCP-Server* den Haken bei
+**Modbus-TCP-Server aktiv** entfernen, *Übernehmen* und *4 Speichern*. Dann ist kein Modbus-Port offen;
+Dashboard, Verlauf und Parameter funktionieren unverändert. Wieder einschalten geht genauso, ohne Neustart.
+
 ### Aufzeichnung und Diagramme
 
 Der Dienst speichert alle aktiven Messwerte und Parameter (Status ok), standardmäßig **alle 60 s**,

@@ -329,6 +329,11 @@ class Service:
                 "budget_remaining": self.guard.remaining_budget,
                 "budget": self.cfg.safety.daily_write_budget, "params": rows}
 
+    def _modbus_info(self) -> dict:
+        m = self.cfg.modbus
+        return {"enabled": m.enabled, "running": bool(self.modbus and self.modbus.running),
+                "bind": m.bind, "port": m.port}
+
     def dashboard(self) -> dict:
         """Startseite: Dienststatus, letzte Aktualisierung, Geräte online und die in der Werteliste
         für das Dashboard markierten Messwerte und Parameter."""
@@ -356,7 +361,7 @@ class Service:
                 groups.append({"id": d.id, "name": d.name or d.id, "online": ds.online, "values": values,
                                "params": params})
         return {"running": True, "version": __version__, "uptime_s": int(time.time() - self.started),
-                "polling": self.poller.state, "warnings": self.warnings(),
+                "polling": self.poller.state, "warnings": self.warnings(), "modbus": self._modbus_info(),
                 "last_update_age_s": None if not last_ok else max(0.0, mono - last_ok),
                 "last_update": None if not last_ok else
                 dt.datetime.fromtimestamp(wall - (mono - last_ok)).isoformat(timespec="seconds"),
@@ -649,7 +654,7 @@ class Service:
     # ===== Status ===============================================================================
     def warnings(self) -> list[str]:
         w = []
-        if not self.cfg.modbus.allow:
+        if self.cfg.modbus.enabled and not self.cfg.modbus.allow:
             w.append("Modbus-IP-Allowlist ist leer: JEDER Client im Netz darf zugreifen!")
         if self.cfg.safety.write_enabled:
             w.append("Schreiben über Modbus ist global freigegeben")
@@ -673,6 +678,7 @@ class Service:
                             "write_alarm": st.write_alarm, "age_s": self.store.age_s(d.id)})
         return {"running": True, "version": __version__, "uptime_s": int(time.time() - self.started),
                 "write_enabled": self.cfg.safety.write_enabled, "warnings": self.warnings(),
+                "modbus": self._modbus_info(),
                 "polling": "running" if self.dummy else self.poller.state,
                 "diag": {"heartbeat": diag.heartbeat, "cycle_time_ms": diag.cycle_time_ms,
                          "can_error_count": diag.can_error_count, "writes_today": self.guard.writes_today,
