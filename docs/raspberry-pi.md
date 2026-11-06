@@ -22,7 +22,7 @@ Dauer: etwa 1 Stunde, davon die meiste Zeit Warten.
 | microSD-Karte | mindestens 16 GB, gute Marke (z. B. SanDisk/Samsung, „A1“ oder „A2“) |
 | Netzwerk | am besten **LAN-Kabel** zum Router (WLAN geht auch) und Internet |
 | CAN-Adapter | InnoMaker USB2CAN (für LambdaControl 2, MultiControl 2 usw.) – [getesteter Adapter bei Amazon](https://www.amazon.de/dp/B09K3LL93Q) |
-| optional | FTDI-USB-Seriell-Adapter (nur für eine LambdaControl 1 über RS232) |
+| optional | FTDI-USB-Seriell-Adapter (nur für eine LambdaControl 1 über RS232) – [getesteter Adapter: DIGITUS DA-70156 bei Amazon](https://www.amazon.de/dp/B0030IT780) |
 | ein Windows-PC | im selben Netz, mit SD-Kartenleser – zum Beschreiben der Karte und zum Einrichten |
 
 ---
