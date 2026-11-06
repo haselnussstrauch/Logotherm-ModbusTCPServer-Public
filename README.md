@@ -61,6 +61,13 @@ powershell -ExecutionPolicy Bypass -File packaging\windows\build-docker.ps1
 Der Installer entsteht unter `release/`. Details: [docs/windows.md](docs/windows.md), Abschnitt
 „Installer selbst bauen“.
 
+## Fragen & Kontakt
+
+Fragen, Fehler und Ideen bitte als [**Issue**](../../issues) melden – mit Version (Launcher bzw.
+`gateway.exe --version`), Reglertyp und den passenden Zeilen aus
+`C:\ProgramData\LogothermGateway\logs\gateway.log`. So helfen Antworten auch anderen.
+Es gibt keinen garantierten Support (privates Projekt).
+
 ## Lizenz
 
 Frei für private, nicht-kommerzielle Nutzung. Keine Gewähr, keine Haftung – weder durch den Autor
