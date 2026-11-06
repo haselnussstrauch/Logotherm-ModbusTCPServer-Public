@@ -315,7 +315,7 @@ Alles Wichtige (Einstellungen, Passwort, Aufzeichnung, Logs) liegt im Ordner
 | `ssh`: „REMOTE HOST IDENTIFICATION HAS CHANGED“ | Karte wurde neu beschrieben – am PC `ssh-keygen -R logogateway.local` ausführen, dann neu verbinden |
 | `ssh`: „Permission denied“ | Benutzername oder Passwort falsch (Groß-/Kleinschreibung beachten) |
 | `can0` gibt es nicht | Adapter in anderen USB-Anschluss, `dmesg \| tail` zeigt, ob er erkannt wird |
-| CAN-Test: „kein Busverkehr“ | Verkabelung/Abschlusswiderstand am Bus prüfen; Bitrate (50 oder 20 kbit/s) stimmt? |
+| CAN-Test: „kein Busverkehr“ | 1. Zeile *Bitrate* im CAN-Test: steht dort **50000 bit/s**? Sonst Schritt 5 wiederholen. 2. Verkabelung: CAN-H an CAN-H, CAN-L an CAN-L (vertauscht = kein Verkehr), GND verbinden. 3. Abschlusswiderstand: Ist der Pi ein Ende des Busses, am InnoMaker den 120-Ω-Jumper setzen. 4. Regler eingeschaltet? Zum Vergleich am Pi: `candump can0` (aus Paket `can-utils`, Beenden mit Strg + C) |
 | `permission denied` bei `docker` | Schritt 3: `sudo usermod -aG docker $USER` und neu starten |
 | Status nicht „healthy“ | `docker compose logs gateway` ansehen |
 | Weboberfläche nicht erreichbar | `docker compose ps` – läuft das Gateway? Richtige Adresse (`hostname -I`)? |

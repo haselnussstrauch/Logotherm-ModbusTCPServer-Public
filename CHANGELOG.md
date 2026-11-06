@@ -3,6 +3,12 @@
 Format: je Version ein Abschnitt `## <Version> – <Datum>`. Der Abschnitt der aktuellen Version wird
 beim Veröffentlichen als Release-Text verwendet (`packaging/windows/build-docker.ps1 -Release`).
 
+## Unveröffentlicht
+
+- **CAN-Test unter Linux (SocketCAN):** zeigt die tatsächlich eingestellte Bitrate, Abtastpunkt und
+  Zustand von `can0` und meldet einen Fehler samt Befehl zur Korrektur, wenn sie nicht zur Konfiguration
+  passt.
+
 ## 0.1.8 – 2026-11-06
 
 - **Auswahltexte:** Werte, die der Regler als Text anzeigt (z. B. Betriebsart, Kesselstatus), holt

@@ -261,6 +261,52 @@ def open_can_bus(cfg: CanConfig, *, listen_only: bool = False) -> can.BusABC:
     raise InterfaceError(f"unbekannte CAN-Schnittstelle {iface!r}")
 
 
+def socketcan_link(channel: str, run=None) -> dict | None:
+    """Bitzeit/Zustand einer SocketCAN-Schnittstelle laut ``ip -details -json link show``.
+
+    Rückgabe z. B. ``{"bitrate": 50000, "sample_point": 0.875, "sjw": 1, "state": "ERROR-ACTIVE",
+    "restart_ms": 1000}``; ``None``, wenn ``ip`` fehlt oder nichts auswertbar ist.
+    """
+    import json
+    import subprocess
+
+    run = run or (lambda cmd: subprocess.run(cmd, capture_output=True, text=True, timeout=5))
+    try:
+        res = run(["ip", "-details", "-json", "link", "show", channel])
+        if res.returncode != 0:
+            return None
+        data = json.loads(res.stdout)
+        info = (data[0].get("linkinfo") or {}).get("info_data") or {}
+    except Exception:  # noqa: BLE001 – Diagnose darf nie scheitern
+        return None
+    bt = info.get("bittiming") or {}
+    if not bt.get("bitrate"):
+        return None
+    try:
+        sp = float(bt.get("sample_point", 0) or 0)
+    except (TypeError, ValueError):
+        sp = 0.0
+    return {"bitrate": int(bt["bitrate"]), "sample_point": sp, "sjw": bt.get("sjw"),
+            "state": info.get("state"), "restart_ms": info.get("restart_ms")}
+
+
+def check_bitrate(bus: can.BusABC | None, cfg: CanConfig, run=None) -> tuple[bool, str]:
+    """(ok, Text) für den Selbsttest. Bei SocketCAN wird die echte Bitrate von ``ip`` gelesen."""
+    if cfg.interface != "socketcan" or bus is None:
+        return True, describe_bus(bus, cfg)
+    link = socketcan_link(cfg.channel, run)
+    if link is None:
+        return True, describe_bus(bus, cfg) + " – Ist-Wert nicht lesbar (Programm 'ip' fehlt?)"
+    text = (f"socketcan {cfg.channel}: {link['bitrate']} bit/s, Abtastpunkt {link['sample_point'] * 100:.1f} %, "
+            f"SJW {link['sjw']}, Zustand {link['state']}")
+    if link["bitrate"] != cfg.bitrate:
+        return False, (f"{text} – Soll {cfg.bitrate} bit/s! Am Host einstellen: "
+                       f"sudo ip link set {cfg.channel} down; "
+                       f"sudo ip link set {cfg.channel} type can bitrate {cfg.bitrate} restart-ms 1000; "
+                       f"sudo ip link set {cfg.channel} up (dauerhaft: BitRate in /etc/systemd/network/80-can.network)")
+    return True, text
+
+
 def describe_bus(bus: can.BusABC | None, cfg: CanConfig) -> str:
     """Kurztext zur Bitzeit für Selbsttest/Diagnose."""
     if bus is None:

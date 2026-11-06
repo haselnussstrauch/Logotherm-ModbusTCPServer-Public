@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import logging
 
-from gateway.can_lc2.bus import describe_bus
+from gateway.can_lc2.bus import check_bitrate
 from gateway.can_lc2.client import CanClient
 from gateway.can_lc2.driver import CanDriver, type_name
 from gateway.config import GatewayConfig
@@ -48,7 +48,7 @@ async def can_selftest(cfg: GatewayConfig, *, listen_s: float = LISTEN_S, bus_fa
         return results
     try:
         results.append(("Adapter öffnen", True, f"{c.interface}/{c.channel} geöffnet ({mode})"))
-        results.append(("Bitrate", True, describe_bus(passive.bus, c)))
+        results.append(("Bitrate", *check_bitrate(passive.bus, c)))
 
         # --- 3./4. passiv mithören ---
         res = await passive.listen(listen_s)
