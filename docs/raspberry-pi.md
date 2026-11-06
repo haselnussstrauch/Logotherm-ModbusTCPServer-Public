@@ -33,12 +33,15 @@ Am **PC**:
 3. *Raspberry-Pi-Modell* → **Raspberry Pi 400**.
 4. *Betriebssystem* → **Raspberry Pi OS (64-bit)**. Wichtig: **64-bit**, nicht 32-bit.
 5. *SD-Karte* → deine Karte auswählen → **Weiter**.
-6. Frage „Einstellungen anpassen?“ → **Einstellungen bearbeiten**:
+6. **Anpassung** (Imager 2.x: Seiten links nacheinander; ältere Imager: „Einstellungen bearbeiten“):
    - **Hostname:** `logogateway`
-   - **Benutzername und Passwort** festlegen (merken!)
-   - WLAN nur eintragen, wenn du kein LAN-Kabel verwendest
-   - **Zeitzone:** Europe/Vienna (bzw. Europe/Berlin), **Tastatur:** de
-   - **Speichern** → **Ja** → Warnung bestätigen. Der Imager schreibt und prüft die Karte (5–15 min).
+   - **Lokalisierung:** Zeitzone Europe/Vienna (bzw. Europe/Berlin), Tastatur de
+   - **Benutzer:** Benutzername und Passwort festlegen (merken!)
+   - **WLAN:** nur eintragen, wenn du kein LAN-Kabel verwendest
+   - **Fernzugriff (SSH):** **SSH aktivieren → Ein**, *Passwort zur Authentifizierung verwenden*.
+     Damit kannst du den Pi später auch ohne Bildschirm vom PC aus bedienen (siehe unten).
+   - *Raspberry Pi Connect:* nicht nötig, aus lassen
+   - **Schreiben** → Warnung bestätigen. Der Imager schreibt und prüft die Karte (5–15 min).
 7. SD-Karte in den Pi 400 stecken (Schlitz hinten), LAN-Kabel, Maus und Bildschirm anschließen,
    **zuletzt** das Netzteil. Der Pi startet, das dauert beim ersten Mal ein paar Minuten.
 
@@ -47,6 +50,12 @@ Wenn der Desktop erscheint: oben links auf das schwarze Symbol **Terminal** klic
 
 > **Kopieren und Einfügen im Terminal:** Einfügen mit **Strg + Umschalt + V** (nicht nur Strg + V)
 > oder Rechtsklick → *Einfügen*.
+
+> **Ohne Bildschirm (per SSH vom PC):** Am Windows-PC *Eingabeaufforderung* oder *PowerShell*
+> öffnen und `ssh <benutzer>@logogateway.local` eingeben (klappt `.local` nicht, die IP-Adresse
+> des Pi verwenden, siehe Schritt 8). Beim ersten Mal die Frage mit `yes` bestätigen, dann das
+> Passwort eingeben (es wird beim Tippen nicht angezeigt). Danach funktionieren alle Befehle
+> genauso wie im Terminal am Pi. Einfügen dort mit Rechtsklick.
 
 ---
 
