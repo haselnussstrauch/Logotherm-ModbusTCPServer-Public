@@ -44,7 +44,6 @@ Name=can0
 
 [CAN]
 BitRate=50K
-RestartSec=1s
 ```
 
 ```bash

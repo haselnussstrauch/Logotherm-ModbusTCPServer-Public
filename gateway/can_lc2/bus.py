@@ -302,7 +302,7 @@ def check_bitrate(bus: can.BusABC | None, cfg: CanConfig, run=None) -> tuple[boo
     if link["bitrate"] != cfg.bitrate:
         return False, (f"{text} – Soll {cfg.bitrate} bit/s! Am Host einstellen: "
                        f"sudo ip link set {cfg.channel} down; "
-                       f"sudo ip link set {cfg.channel} type can bitrate {cfg.bitrate} restart-ms 1000; "
+                       f"sudo ip link set {cfg.channel} type can bitrate {cfg.bitrate}; "
                        f"sudo ip link set {cfg.channel} up (dauerhaft: BitRate in /etc/systemd/network/80-can.network)")
     return True, text
 

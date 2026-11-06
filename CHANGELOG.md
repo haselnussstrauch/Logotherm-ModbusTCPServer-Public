@@ -8,6 +8,10 @@ beim Veröffentlichen als Release-Text verwendet (`packaging/windows/build-docke
 - **CAN-Test unter Linux (SocketCAN):** zeigt die tatsächlich eingestellte Bitrate, Abtastpunkt und
   Zustand von `can0` und meldet einen Fehler samt Befehl zur Korrektur, wenn sie nicht zur Konfiguration
   passt.
+- **CAN-Adapter im Betrieb ab- und wieder angesteckt:** Das Gateway erkennt das nach etwa 2 s und
+  öffnet den Adapter beim nächsten Zugriff selbst neu (bisher war ein Neustart nötig).
+- **Pi-Anleitung korrigiert:** `RestartSec=1s` aus der `can0`-Konfiguration entfernt – der InnoMaker
+  unterstützt das nicht, `can0` blieb dadurch aus.
 
 ## 0.1.8 – 2026-11-06
 

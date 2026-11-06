@@ -46,6 +46,8 @@ ECHO_WINDOW_S = 2.0
 ENUM_IDLE_S = 2.0
 #: Obergrenze für eine komplette Aufzählung
 ENUM_MAX_S = 120.0
+#: so viele Empfangsfehler in Folge (je 0,2 s Pause) -> Adapter gilt als getrennt und wird neu geöffnet
+REOPEN_AFTER_FAILS = 10
 
 Mode = Literal["single", "block", "enum"]
 FrameHook = Callable[[can.Message, "idcodec.FrameId | None", str], None]
@@ -206,8 +208,23 @@ class CanClient:
                 fails += 1
                 self._stats["errors"] += 1
                 self._iface_error = str(exc)
-                if fails in (1, 10, 100):
+                if fails == 1:
                     log.error("CAN-Empfang gestört: %s", exc)
+                if fails >= REOPEN_AFTER_FAILS:
+                    # Adapter abgezogen/neu angesteckt (z. B. SocketCAN: neue Schnittstelle, ENODEV):
+                    # als geschlossen melden -> der Treiber öffnet beim nächsten Zugriff neu.
+                    log.error("CAN-Adapter antwortet nicht mehr (%s) – wird beim nächsten Zugriff neu geöffnet", exc)
+                    self._running = False
+                    p = self._pending
+                    if p is not None and self._loop is not None and not self._loop.is_closed():
+                        def _fail(p=p, err=str(exc)):
+                            p.error = InterfaceError(f"CAN-Adapter getrennt: {err}")
+                            p.done.set()
+                        try:
+                            self._loop.call_soon_threadsafe(_fail)
+                        except RuntimeError:
+                            pass
+                    break
                 time.sleep(0.2)
                 continue
             if msg is None:

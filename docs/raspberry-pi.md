@@ -152,7 +152,7 @@ Das Gateway liegt jetzt im Ordner `logotherm-gateway` in deinem Benutzerordner.
    (**50 kbit/s**), diese vier Befehle nacheinander ausführen:
 
    ```bash
-   printf '[Match]\nName=can0\n\n[CAN]\nBitRate=50K\nRestartSec=1s\n' | sudo tee /etc/systemd/network/80-can.network
+   printf '[Match]\nName=can0\n\n[CAN]\nBitRate=50K\n' | sudo tee /etc/systemd/network/80-can.network
    sudo systemctl enable --now systemd-networkd
    sudo systemctl disable systemd-networkd-wait-online.service
    sudo networkctl reload && sudo networkctl reconfigure can0
@@ -314,6 +314,7 @@ Alles Wichtige (Einstellungen, Passwort, Aufzeichnung, Logs) liegt im Ordner
 | `ssh`: „Connection refused“ | SSH wurde im Imager nicht eingeschaltet → Karte neu beschreiben (Schritt 1, Fernzugriff) |
 | `ssh`: „REMOTE HOST IDENTIFICATION HAS CHANGED“ | Karte wurde neu beschrieben – am PC `ssh-keygen -R logogateway.local` ausführen, dann neu verbinden |
 | `ssh`: „Permission denied“ | Benutzername oder Passwort falsch (Groß-/Kleinschreibung beachten) |
+| CAN-Test: „Network is down“ oder `networkctl list` zeigt bei `can0` **failed** | `cat /etc/systemd/network/80-can.network` – steht dort `RestartSec`, die Datei mit dem Befehl aus Schritt 5 neu schreiben (der InnoMaker unterstützt das nicht), dann `sudo networkctl reload && sudo networkctl reconfigure can0` |
 | `can0` gibt es nicht | Adapter in anderen USB-Anschluss, `dmesg \| tail` zeigt, ob er erkannt wird |
 | CAN-Test: „kein Busverkehr“ | 1. Zeile *Bitrate* im CAN-Test: steht dort **50000 bit/s**? Sonst Schritt 5 wiederholen. 2. Verkabelung: CAN-H an CAN-H, CAN-L an CAN-L (vertauscht = kein Verkehr), GND verbinden. 3. Abschlusswiderstand: Ist der Pi ein Ende des Busses, am InnoMaker den 120-Ω-Jumper setzen. 4. Regler eingeschaltet? Zum Vergleich am Pi: `candump can0` (aus Paket `can-utils`, Beenden mit Strg + C) |
 | `permission denied` bei `docker` | Schritt 3: `sudo usermod -aG docker $USER` und neu starten |
