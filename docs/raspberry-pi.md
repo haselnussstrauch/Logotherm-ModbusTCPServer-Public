@@ -1,7 +1,7 @@
 # Logotherm-Gateway auf dem Raspberry Pi – Schritt für Schritt
 
 Diese Anleitung bringt das Gateway auf einem **Raspberry Pi 400** zum Laufen (gilt genauso für
-Raspberry Pi 4 und 5). Vorkenntnisse in Linux sind nicht nötig: Du kopierst die grau hinterlegten Befehle der Reihe nach
+Raspberry Pi 4 und 5; für den **Pi 3 B+** gibt es [raspberry-pi-3.md](raspberry-pi-3.md)). Vorkenntnisse in Linux sind nicht nötig: Du kopierst die grau hinterlegten Befehle der Reihe nach
 in ein Befehlsfenster und drückst jeweils **Enter**.
 
 **Kein Bildschirm nötig:** Der Pi wird komplett vom Windows-PC aus eingerichtet – über das Netzwerk

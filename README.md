@@ -42,7 +42,8 @@ Updates meldet der Launcher selbst.
 ## Raspberry Pi / Linux (Docker)
 
 **Schritt-für-Schritt-Anleitung für den Raspberry Pi (auch ohne Linux-Kenntnisse):**
-[docs/raspberry-pi.md](docs/raspberry-pi.md). Technische Details zu Docker: [docs/docker.md](docs/docker.md).
+[docs/raspberry-pi.md](docs/raspberry-pi.md) (Pi 4, 5, 400) bzw.
+[docs/raspberry-pi-3.md](docs/raspberry-pi-3.md) (Pi 3 B+). Technische Details zu Docker: [docs/docker.md](docs/docker.md).
 
 ## Selbst bauen
 

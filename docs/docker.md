@@ -3,7 +3,8 @@
 Das Gateway läuft als Container (`amd64` und `arm64`, also auch Raspberry Pi 4/5 mit 64-bit-OS).
 Alle Dateien liegen in `docker/`.
 
-**Raspberry Pi für Einsteiger:** Schritt-für-Schritt-Anleitung in [raspberry-pi.md](raspberry-pi.md).
+**Raspberry Pi für Einsteiger:** Schritt-für-Schritt-Anleitung in [raspberry-pi.md](raspberry-pi.md)
+(Pi 4, 5, 400) bzw. [raspberry-pi-3.md](raspberry-pi-3.md) (Pi 3 B+).
 
 ## Überblick
 
