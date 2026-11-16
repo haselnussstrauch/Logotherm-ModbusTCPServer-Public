@@ -66,6 +66,10 @@ Der Installer entsteht unter `release/`. Details: [docs/windows.md](docs/windows
 
 ## Fragen & Kontakt
 
+Zuerst in die [FAQ](docs/faq.md) schauen, z. B. *Ich finde die Adresse meines Raspberry Pi nicht
+mehr*.
+
+
 Fragen, Fehler und Ideen bitte per E-Mail an **helfen.52vamp@icloud.com** – am besten mit Version
 (Launcher bzw. `gateway.exe --version`), Reglertyp und den passenden Zeilen aus
 `C:\ProgramData\LogothermGateway\logs\gateway.log`. Wer möchte, kann auch ein

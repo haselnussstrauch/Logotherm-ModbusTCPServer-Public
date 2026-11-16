@@ -3,27 +3,26 @@
 Format: je Version ein Abschnitt `## <Version> – <Datum>`. Der Abschnitt der aktuellen Version wird
 beim Veröffentlichen als Release-Text verwendet (`packaging/windows/build-docker.ps1 -Release`).
 
-## Unveröffentlicht
-
-- **CAN-Test unter Linux (SocketCAN):** zeigt die tatsächlich eingestellte Bitrate, Abtastpunkt und
-  Zustand von `can0` und meldet einen Fehler samt Befehl zur Korrektur, wenn sie nicht zur Konfiguration
-  passt.
-- **CAN-Adapter im Betrieb ab- und wieder angesteckt:** Das Gateway erkennt das nach etwa 2 s und
-  öffnet den Adapter beim nächsten Zugriff selbst neu (bisher war ein Neustart nötig). Unter Linux
-  wird dazu auch erkannt, dass `can0` neu angelegt wurde.
-- **Pi-Anleitung korrigiert:** `RestartSec=1s` aus der `can0`-Konfiguration entfernt – der InnoMaker
-  unterstützt das nicht, `can0` blieb dadurch aus.
-- **Docker/Raspberry Pi: serielle Adapter ohne Einrichtung.** USB-Seriell-Adapter (FTDI) erscheinen
-  automatisch in der Weboberfläche, auch später angesteckte; der Eintrag in `compose.yaml` entfällt.
-  Wer ihn früher von Hand eingetragen hat: vor dem Update `git checkout docker/compose.yaml`.
-
-- **Modbus-TCP-Server abschaltbar** (*1 Schnittstellen → Modbus-TCP-Server aktiv*), z. B. wenn nur
-  das Dashboard gebraucht wird. Kein Modbus-Port offen, keine Allowlist-Warnung; ein/aus ohne Neustart.
-  Das Dashboard zeigt den Modbus-Zustand als eigene Kachel.
+## 0.1.9 – 2026-11-16
 
 - **Launcher: IP-Adresse des PCs.** Das Statusfenster zeigt die aktuelle IP-Adresse (DHCP/manuell) und
   die Adresse der Weboberfläche für andere Geräte. *IP-Adresse ändern …*: DHCP oder feste Adresse mit
   Maske, Gateway und DNS – mit Prüfung der Eingaben und UAC-Abfrage.
+- **Modbus-TCP-Server abschaltbar** (*1 Schnittstellen → Modbus-TCP-Server aktiv*), z. B. wenn nur
+  das Dashboard gebraucht wird. Kein Modbus-Port offen, keine Allowlist-Warnung; ein/aus ohne Neustart.
+  Das Dashboard zeigt den Modbus-Zustand als eigene Kachel.
+- **CAN-Adapter im Betrieb ab- und wieder angesteckt:** Das Gateway erkennt das nach etwa 2 s und
+  öffnet den Adapter beim nächsten Zugriff selbst neu (bisher war ein Neustart nötig). Unter Linux
+  wird dazu auch erkannt, dass `can0` neu angelegt wurde.
+- **CAN-Test unter Linux (SocketCAN):** zeigt die tatsächlich eingestellte Bitrate, Abtastpunkt und
+  Zustand von `can0` und meldet einen Fehler samt Befehl zur Korrektur, wenn sie nicht zur Konfiguration
+  passt.
+- **Docker/Raspberry Pi: serielle Adapter ohne Einrichtung.** USB-Seriell-Adapter (FTDI) erscheinen
+  automatisch in der Weboberfläche, auch später angesteckte; der Eintrag in `compose.yaml` entfällt.
+  Wer ihn früher von Hand eingetragen hat: vor dem Update `git checkout docker/compose.yaml`.
+- **Doku:** Raspberry-Pi-Anleitungen ohne Bildschirm (Pi 4/5/400 und Pi 3 B+), `RestartSec` aus der
+  `can0`-Konfiguration entfernt (der InnoMaker unterstützt das nicht), neue [FAQ](docs/faq.md)
+  (Adresse des Pi finden, feste IP, mehrere Gateways).
 
 ## 0.1.8 – 2026-11-06
 

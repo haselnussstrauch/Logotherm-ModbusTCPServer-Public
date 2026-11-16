@@ -333,4 +333,5 @@ Alles Wichtige (Einstellungen, Passwort, Aufzeichnung, Logs) liegt im Ordner
 | Port 502 belegt | ein anderes Modbus-Programm läuft auf dem Pi |
 | Passwort vergessen | in `~/logotherm-gateway/docker/data/gateway.yaml` die Zeile `password_hash:` löschen, dann `docker compose restart gateway` und neues Passwort setzen |
 
-Fragen: siehe „Fragen & Kontakt“ im [README](../README.md).
+Adresse vergessen, feste IP, zwei Gateways im Netz: siehe [FAQ](faq.md).
+Weitere Fragen: siehe „Fragen & Kontakt“ im [README](../README.md).
