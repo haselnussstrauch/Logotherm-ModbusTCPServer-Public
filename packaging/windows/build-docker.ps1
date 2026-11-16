@@ -47,7 +47,9 @@ try {
         $body = @()
         foreach ($l in $lines[$start..($lines.Count - 1)]) { if ($l -match '^## ') { break }; $body += $l }
         $notes = ($body -join "`n").Trim()
-        & gh release view "v$version" --repo $Repo *> $null
+        # ueber cmd.exe: in Windows PowerShell 5.1 wird umgeleitetes stderr eines Programms
+        # ("release not found") bei ErrorActionPreference=Stop sonst zum Abbruch
+        & cmd.exe /c "gh release view v$version --repo $Repo >nul 2>nul"
         if ($LASTEXITCODE -eq 0) { throw "Release v$version gibt es in $Repo schon - Version hochzaehlen" }
     }
 
