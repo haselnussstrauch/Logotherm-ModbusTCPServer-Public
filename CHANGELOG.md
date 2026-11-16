@@ -3,7 +3,7 @@
 Format: je Version ein Abschnitt `## <Version> – <Datum>`. Der Abschnitt der aktuellen Version wird
 beim Veröffentlichen als Release-Text verwendet (`packaging/windows/build-docker.ps1 -Release`).
 
-## Unveröffentlicht
+## 0.1.10 – 2026-11-16
 
 - **Update-Knopf in der Weboberfläche:** Gibt es eine neue Version, erscheint oben auf jeder Seite ein
   Hinweis. Beim Windows-Dienst installiert *Jetzt installieren* das Update still (Download mit
