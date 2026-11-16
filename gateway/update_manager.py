@@ -17,6 +17,7 @@ import asyncio
 import contextlib
 import logging
 import os
+import re
 import subprocess
 import sys
 import time
@@ -29,6 +30,11 @@ log = logging.getLogger(__name__)
 
 FIRST_CHECK_DELAY_S = 60.0
 TASK_NAME = "LogothermGatewayUpdate"
+SERVICE_NAME = "LogothermGateway"
+# Liegt während der stillen Installation in <Daten>/updates; der Launcher beendet sich, solange es sie
+# gibt, und startet danach neu (sonst wäre LogothermGateway.exe gesperrt und das Setup bricht ab).
+UPDATE_FLAG = "update-running"
+FAILED_LOG_MAX_AGE_S = 2 * 24 * 3600
 DOCKER_COMMAND = "cd ~/logotherm-gateway && git pull && cd docker && docker compose up -d --build"
 
 
@@ -58,6 +64,27 @@ class UpdateManager:
         self._task: asyncio.Task | None = None
         self._wake = asyncio.Event()
         self._lock = asyncio.Lock()
+        self._note_failed_update()
+
+    def _note_failed_update(self) -> None:
+        """Nach dem Neustart: wurde das letzte stille Update abgebrochen (Setup-Protokoll mit Rollback
+        für eine neuere Version als die laufende)? Dann als Fehler anzeigen statt stillschweigend."""
+        try:
+            logs = sorted((self.data_dir / "logs").glob("update-setup-*.log"),
+                          key=lambda f: f.stat().st_mtime, reverse=True)
+            if not logs or time.time() - logs[0].stat().st_mtime > FAILED_LOG_MAX_AGE_S:
+                return
+            text = logs[0].read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            return
+        m = re.match(r"update-setup-(.+)\.log$", logs[0].name)
+        if not m or not updater.is_newer(m.group(1), __version__) or "Rolling back changes" not in text:
+            return
+        reason = " (eine Datei war in Benutzung – Launcher-Fenster offen?)" if "appears to be in use" in text else ""
+        self.state = "error"
+        self.error = (f"Das Update auf {m.group(1)} wurde abgebrochen{reason}; Version {__version__} läuft "
+                      f"weiter. Protokoll: logs\\{logs[0].name}")
+        log.warning("Letztes Update abgebrochen: %s", logs[0])
 
     # --- Status --------------------------------------------------------------------------------
     @property
@@ -99,6 +126,7 @@ class UpdateManager:
         async with self._lock:
             if self.state in ("downloading", "installing"):
                 return self.status()
+            failed = self.error if self.state == "error" else ""
             self.state = "checking"
             try:
                 self.release = await asyncio.to_thread(self._fetch)
@@ -111,6 +139,8 @@ class UpdateManager:
             finally:
                 self.checked_at = time.time()
                 self.state = "idle"
+                if failed and not self.error:       # Hinweis auf abgebrochenes Update bleibt stehen
+                    self.state, self.error = "error", failed
         return self.status()
 
     # --- Installieren --------------------------------------------------------------------------
@@ -146,16 +176,33 @@ def launch_setup_windows(setup: Path, logf: Path, work_dir: Path, run=subprocess
     work_dir.mkdir(parents=True, exist_ok=True)
     logf.parent.mkdir(parents=True, exist_ok=True)
     cmd = work_dir / "run-update.cmd"
+    flag = work_dir / UPDATE_FLAG
     line = subprocess.list2cmdline(updater.silent_install_command(setup, logf))
+    # Erst bis zu ~20 s warten, bis sich der Launcher beendet hat (er sieht die Markierung), dann Setup.
+    # Danach den Dienst auf jeden Fall starten – bricht das Setup ab, bliebe er sonst gestoppt.
     cmd.write_text("@echo off\r\n"
+                   "set n=0\r\n"
+                   ":wait\r\n"
+                   '"%SystemRoot%\\System32\\tasklist.exe" /FI "IMAGENAME eq LogothermGateway.exe" 2>nul'
+                   ' | "%SystemRoot%\\System32\\find.exe" /I "LogothermGateway.exe" >nul || goto run\r\n'
+                   "set /a n+=1\r\n"
+                   "if %n% geq 10 goto run\r\n"
+                   '"%SystemRoot%\\System32\\PING.EXE" -n 3 127.0.0.1 >nul\r\n'
+                   "goto wait\r\n"
+                   ":run\r\n"
                    f"{line}\r\n"
+                   f"net start {SERVICE_NAME} >nul 2>&1\r\n"
+                   f'del /F /Q "{flag}" >nul 2>&1\r\n'
                    f"schtasks /Delete /TN {TASK_NAME} /F >nul 2>&1\r\n", encoding="utf-8")
+    flag.write_text(setup.name, encoding="utf-8")
     flags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
     common = {"capture_output": True, "text": True, "timeout": 30, "creationflags": flags}
     res = run(["schtasks", "/Create", "/F", "/TN", TASK_NAME, "/SC", "ONCE", "/ST", "00:00",
                "/RU", "SYSTEM", "/RL", "HIGHEST", "/TR", f'cmd.exe /c "{cmd}"'], **common)
     if res.returncode != 0:
+        flag.unlink(missing_ok=True)
         raise RuntimeError(f"Aufgabe konnte nicht angelegt werden: {(res.stderr or res.stdout).strip()[:200]}")
     res = run(["schtasks", "/Run", "/TN", TASK_NAME], **common)
     if res.returncode != 0:
+        flag.unlink(missing_ok=True)
         raise RuntimeError(f"Aufgabe konnte nicht gestartet werden: {(res.stderr or res.stdout).strip()[:200]}")

@@ -110,6 +110,10 @@ def test_aufgabenplanung_befehle(tmp_path):
     script = (tmp_path / "updates" / "run-update.cmd").read_text(encoding="utf-8")
     assert "/VERYSILENT" in script and "/MERGETASKS=!winusb" in script and "/NORESTART" in script
     assert str(setup) in script and f"schtasks /Delete /TN {TASK_NAME}" in script
+    # Launcher bekommt Zeit zum Beenden, Dienst wird danach in jedem Fall gestartet, Markierung entfernt
+    assert script.index("tasklist") < script.index("/VERYSILENT") < script.index("net start LogothermGateway")
+    flag = tmp_path / "updates" / update_manager.UPDATE_FLAG
+    assert flag.exists() and f'del /F /Q "{flag}"' in script
 
 
 def test_aufgabenplanung_fehler(tmp_path):
@@ -117,6 +121,29 @@ def test_aufgabenplanung_fehler(tmp_path):
         return SimpleNamespace(returncode=1, stdout="", stderr="Zugriff verweigert")
     with pytest.raises(RuntimeError, match="Zugriff verweigert"):
         launch_setup_windows(tmp_path / "s.exe", tmp_path / "l.log", tmp_path, run=run)
+    assert not (tmp_path / update_manager.UPDATE_FLAG).exists()     # kein Launcher-Stopp ohne Update
+
+
+ROLLBACK_LOG = ("DeleteFile: The existing file appears to be in use (5). Retrying.\n"
+                "User canceled the installation process.\nRolling back changes.\n")
+
+
+def test_abgebrochenes_update_wird_gemeldet(tmp_path):
+    (tmp_path / "logs").mkdir()
+    (tmp_path / "logs" / "update-setup-99.0.0.log").write_text(ROLLBACK_LOG, encoding="utf-8")
+    m = _mgr(tmp_path)
+    st = m.status()
+    assert st["state"] == "error" and "99.0.0 wurde abgebrochen" in st["error"] and "in Benutzung" in st["error"]
+    st = asyncio.run(m.check())                 # erneute Prüfung: Hinweis bleibt, Knopf wieder da
+    assert st["error"] and st["available"] and st["can_install"]
+
+
+def test_erfolgreiches_oder_altes_update_kein_hinweis(tmp_path):
+    (tmp_path / "logs").mkdir()
+    (tmp_path / "logs" / "update-setup-99.0.0.log").write_text("Installation process succeeded.\n", encoding="utf-8")
+    assert _mgr(tmp_path).status()["error"] == ""
+    (tmp_path / "logs" / "update-setup-0.0.1.log").write_text(ROLLBACK_LOG, encoding="utf-8")
+    assert _mgr(tmp_path).status()["error"] == ""          # ältere Version als die laufende
 
 
 def test_install_mode_entwicklung():

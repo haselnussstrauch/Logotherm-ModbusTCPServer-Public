@@ -23,6 +23,10 @@ function renderUpdate(u) {
   const box = document.getElementById("update-banner");
   if (!u || (!u.available && u.state !== "error")) { box.replaceChildren(); box.style.display = "none"; return; }
   box.style.display = "block";
+  if (!u.available) {                       // nur Fehlermeldung (z. B. abgebrochenes Update)
+    box.replaceChildren(h("div", { class: "err-text" }, u.error || "Update-Fehler"));
+    return;
+  }
   const kids = [h("strong", {}, `Neue Version ${u.latest} verfügbar`), ` (installiert: ${u.current}). `];
   if (u.page_url) kids.push(h("a", { href: u.page_url, target: "_blank", rel: "noopener" }, "Was ist neu?"), " ");
   if (u.state === "downloading" || u.state === "installing") {
@@ -70,12 +74,19 @@ async function updInstall(u) {
 // Während der Installation ist der Dienst weg; sobald er mit der neuen Version antwortet: neu laden.
 function updAwaitRestart() {
   const started = Date.now();
+  let wasDown = false;
   const tick = async () => {
     try {
       const r = await fetch("/api/status", { headers: { "X-Requested-With": "gateway" } });
       const s = await r.json();
       if (s.version && s.version === updWaitFor) { toast(`Update auf ${s.version} installiert`); setTimeout(() => location.reload(), 1500); return; }
-    } catch (e) { /* Dienst gerade neu gestartet */ }
+      if (wasDown && s.version) {             // Dienst ist zurück, aber noch mit der alten Version
+        updWaitFor = null;
+        fail(new Error(`Update nicht installiert – Version ${s.version} läuft weiter. Protokoll: logs/update-setup-*.log`));
+        updRefresh();
+        return;
+      }
+    } catch (e) { wasDown = true; /* Dienst gerade neu gestartet */ }
     if (Date.now() - started > 10 * 60 * 1000) { fail(new Error("Update dauert ungewöhnlich lange – Protokoll prüfen (logs/update-setup-*.log)")); return; }
     setTimeout(tick, 3000);
   };

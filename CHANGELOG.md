@@ -3,6 +3,16 @@
 Format: je Version ein Abschnitt `## <Version> – <Datum>`. Der Abschnitt der aktuellen Version wird
 beim Veröffentlichen als Release-Text verwendet (`packaging/windows/build-docker.ps1 -Release`).
 
+## 0.1.12 – 2026-11-16
+
+- **Update aus der Weboberfläche repariert:** Bei offenem Launcher-Fenster brach das stille Setup ab
+  (Launcher-Datei gesperrt), und der Dienst blieb gestoppt. Jetzt schließt sich der Launcher während
+  des Updates selbst und öffnet sich danach wieder. Das Setup beendet einen noch laufenden Launcher
+  und startet den Dienst auch nach einem Abbruch wieder. Ein abgebrochenes Update meldet die
+  Weboberfläche jetzt, statt minutenlang zu warten.
+- Hinweis für das Update von 0.1.10/0.1.11: Das Launcher-Fenster wird beim Web-Update geschlossen
+  und öffnet sich dieses eine Mal noch nicht von selbst (Startmenü → *Logotherm Gateway (Status)*).
+
 ## 0.1.11 – 2026-11-16
 
 - **Menü am Handy:** Auf schmalen Bildschirmen gibt es statt der waagrecht scrollenden Reiterleiste einen

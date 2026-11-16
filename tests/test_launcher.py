@@ -142,6 +142,24 @@ def test_data_dir_env(monkeypatch, tmp_path):
     assert launcher.log_path() == tmp_path / "logs" / "gateway.log"
 
 
+def test_web_update_markierung(monkeypatch, tmp_path):
+    import os
+    import time
+    monkeypatch.setenv("GATEWAY_DATA_DIR", str(tmp_path))
+    flag = launcher.update_flag_path()
+    assert flag == tmp_path / "updates" / "update-running"      # gleicher Name wie im Dienst
+    from gateway.update_manager import UPDATE_FLAG
+    assert flag.name == UPDATE_FLAG
+    assert not launcher.update_in_progress()
+    flag.parent.mkdir()
+    flag.write_text("x")
+    assert launcher.update_in_progress()
+    old = time.time() - launcher.UPDATE_FLAG_MAX_AGE_S - 10
+    os.utime(flag, (old, old))
+    assert not launcher.update_in_progress()                    # liegengebliebene Markierung
+    assert launcher.relaunch_after_update() is False            # nicht eingefroren: kein Helfer
+
+
 def test_fenster_baut_sich_auf():
     tk = pytest.importorskip("tkinter")
     try:

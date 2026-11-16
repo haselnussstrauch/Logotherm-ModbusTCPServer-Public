@@ -1,12 +1,12 @@
 ﻿; Inno Setup 6 - Installer fuer Logotherm Gateway (Windows)
-; Aufruf (aus packaging/windows/docker/build.sh, im Build-Container):  ISCC.exe /DAppVersion=0.1.11 packaging\windows\setup.iss
+; Aufruf (aus packaging/windows/docker/build.sh, im Build-Container):  ISCC.exe /DAppVersion=0.1.12 packaging\windows\setup.iss
 ; Voraussetzungen vor dem Kompilieren (erledigt docker/build.sh):
 ;   dist\gateway\          PyInstaller-Ausgabe von gateway.spec
 ;   dist\launcher\         PyInstaller-Ausgabe von launcher.spec
 ;   third_party\WinSW-x64.exe   (WinSW, vom Dockerfile geladen)
 
 #ifndef AppVersion
-  #define AppVersion "0.1.11"
+  #define AppVersion "0.1.12"
 #endif
 #define AppName "Logotherm Gateway"
 #define ServiceName "LogothermGateway"
@@ -108,6 +108,10 @@ Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall delete rule name=
 Filename: "{sys}\netsh.exe"; Parameters: "advfirewall firewall delete rule name={#FwRuleWeb}"; Flags: runhidden waituntilterminated; RunOnceId: "RemoveFwWeb"
 
 [Code]
+var
+  ServiceStopped: Boolean;
+  InstallDone: Boolean;
+
 function ServiceExists: Boolean;
 var
   ResultCode: Integer;
@@ -121,6 +125,8 @@ procedure CurStepChanged(CurStep: TSetupStep);
 var
   ResultCode: Integer;
 begin
+  if CurStep = ssDone then
+    InstallDone := True;
   if (CurStep = ssPostInstall) and WizardIsTaskSelected('winusb') then
   begin
     WizardForm.StatusLabel.Caption := 'WinUSB-Treiber für den USB-CAN-Adapter wird installiert ...';
@@ -135,13 +141,31 @@ begin
   end;
 end;
 
-{ Update: Dienst vor dem Austausch der Dateien anhalten (net stop wartet bis zum Stopp). }
+{ Update: Dienst vor dem Austausch der Dateien anhalten (net stop wartet bis zum Stopp) und den
+  Launcher beenden – sonst ist launcher\LogothermGateway.exe gesperrt und das (stille) Setup bricht
+  ab. Der Launcher startet nach dem Setup neu (Haken "Launcher starten" bzw. selbst beim Web-Update). }
 function PrepareToInstall(var NeedsRestart: Boolean): String;
 var
   ResultCode: Integer;
 begin
   Result := '';
   if ServiceExists then
+  begin
     Exec(ExpandConstant('{sys}\net.exe'), 'stop {#ServiceName}', '', SW_HIDE,
+         ewWaitUntilTerminated, ResultCode);
+    ServiceStopped := True;
+  end;
+  Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /IM LogothermGateway.exe', '', SW_HIDE,
+       ewWaitUntilTerminated, ResultCode);
+  Sleep(500);
+end;
+
+{ Abbruch/Fehler nach dem Anhalten: alte Version ist zurückgerollt – Dienst wieder starten. }
+procedure DeinitializeSetup();
+var
+  ResultCode: Integer;
+begin
+  if ServiceStopped and not InstallDone then
+    Exec(ExpandConstant('{sys}\net.exe'), 'start {#ServiceName}', '', SW_HIDE,
          ewWaitUntilTerminated, ResultCode);
 end;

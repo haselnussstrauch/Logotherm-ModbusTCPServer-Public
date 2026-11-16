@@ -53,6 +53,46 @@ def log_path() -> Path:
     return data_dir() / "logs" / "gateway.log"
 
 
+# Markierung des Dienstes während eines Updates aus der Weboberfläche (gateway/update_manager.py).
+UPDATE_FLAG_MAX_AGE_S = 15 * 60
+
+
+def update_flag_path() -> Path:
+    return data_dir() / "updates" / "update-running"
+
+
+def update_in_progress(flag: Path | None = None, now: float | None = None) -> bool:
+    """True, solange der Dienst gerade ein Update still installiert (Markierung jünger als 15 min –
+    eine liegengebliebene alte Markierung darf den Launcher nicht dauerhaft beenden)."""
+    import time
+    flag = flag or update_flag_path()
+    try:
+        age = (now if now is not None else time.time()) - flag.stat().st_mtime
+    except OSError:
+        return False
+    return age < UPDATE_FLAG_MAX_AGE_S
+
+
+def relaunch_after_update(exe: Path | None = None, flag: Path | None = None) -> bool:
+    """Startet einen versteckten Helfer, der wartet, bis das Update fertig ist (Markierung weg,
+    höchstens 15 min), und den Launcher dann neu öffnet. Nur für den installierten Launcher."""
+    if sys.platform != "win32" or not getattr(sys, "frozen", False):
+        return False
+    exe = exe or Path(sys.executable)
+    flag = flag or update_flag_path()
+    q = lambda p: "'" + str(p).replace("'", "''") + "'"          # noqa: E731 – PowerShell-Literal
+    script = (f"$f={q(flag)}; $t=(Get-Date).AddMinutes(15); "
+              "while ((Test-Path -LiteralPath $f) -and ((Get-Date) -lt $t)) { Start-Sleep -Seconds 2 }; "
+              f"Start-Sleep -Seconds 5; Start-Process -FilePath {q(exe)}")
+    flags = getattr(subprocess, "CREATE_NO_WINDOW", 0) | getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+    try:
+        subprocess.Popen(["powershell.exe", "-NoProfile", "-WindowStyle", "Hidden", "-Command", script],
+                         cwd=os.environ.get("SystemRoot", r"C:\Windows"), creationflags=flags, close_fds=True)
+    except OSError:
+        return False
+    return True
+
+
 def _port_from_text(text: str) -> int | None:
     """Liest `web.port` ohne YAML-Bibliothek: erster `port:` im Abschnitt `web:`."""
     in_web = False
@@ -335,7 +375,18 @@ class LauncherWindow:
             self.warn_text.set("\n".join(lines) if lines else "keine")
         self._render_net()
         self._render_update()
+        if self._check_web_update():
+            return
         self.root.after(500, self._render)
+
+    def _check_web_update(self) -> bool:
+        """Update aus der Weboberfläche läuft: Launcher schließen (sonst ist seine Exe gesperrt und
+        das Setup bricht ab) und nach dem Update automatisch neu öffnen."""
+        if not getattr(sys, "frozen", False) or not update_in_progress():
+            return False
+        relaunch_after_update()
+        self._on_close()
+        return True
 
     # --- Netzwerk -----------------------------------------------------------------------------
     def _net_loop(self) -> None:

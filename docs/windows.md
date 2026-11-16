@@ -66,7 +66,10 @@ erscheint oben auf jeder Seite *Neue Version … verfügbar* mit **Jetzt install
 das Setup, prüft die SHA256-Prüfsumme und startet es still über die Aufgabenplanung (einmalige
 Aufgabe `LogothermGatewayUpdate` als SYSTEM). Modbus und Weboberfläche sind dabei 1–2 Minuten weg,
 danach lädt die Seite mit der neuen Version neu. Der WinUSB-Treiber wird dabei nicht neu installiert;
-die übrigen Einstellungen des Setups bleiben. Protokoll: `logs\update-setup-<Version>.log`.
+die übrigen Einstellungen des Setups bleiben. Ein offenes Launcher-Fenster schließt sich während des
+Updates und öffnet sich danach wieder. Bricht das Setup ab, läuft die bisherige Version weiter, und
+die Weboberfläche zeigt einen Hinweis. Protokoll:
+`C:\ProgramData\LogothermGateway\logs\update-setup-<Version>.log`.
 Abschalten: *1 Schnittstellen → Updates*. Dort auch *Jetzt nach Updates suchen*.
 
 ### Einrichtung im Browser
