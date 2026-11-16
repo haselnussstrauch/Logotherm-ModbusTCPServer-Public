@@ -21,7 +21,7 @@ beim Veröffentlichen als Release-Text verwendet (`packaging/windows/build-docke
   automatisch in der Weboberfläche, auch später angesteckte; der Eintrag in `compose.yaml` entfällt.
   Wer ihn früher von Hand eingetragen hat: vor dem Update `git checkout docker/compose.yaml`.
 - **Doku:** Raspberry-Pi-Anleitungen ohne Bildschirm (Pi 4/5/400 und Pi 3 B+), `RestartSec` aus der
-  `can0`-Konfiguration entfernt (der InnoMaker unterstützt das nicht), neue [FAQ](docs/faq.md)
+  `can0`-Konfiguration entfernt (der InnoMaker unterstützt das nicht), neue [FAQ](https://github.com/haselnussstrauch/Logotherm-ModbusTCPServer-Public/blob/main/docs/faq.md)
   (Adresse des Pi finden, feste IP, mehrere Gateways).
 
 ## 0.1.8 – 2026-11-06
