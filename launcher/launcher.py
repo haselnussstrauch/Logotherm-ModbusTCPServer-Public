@@ -28,6 +28,7 @@ from pathlib import Path
 SERVICE_NAME = "LogothermGateway"
 DEFAULT_PORT = 8080
 POLL_INTERVAL_S = 3.0
+NET_POLL_INTERVAL_S = 30.0
 HTTP_TIMEOUT_S = 2.0
 
 # Zustände von StatusResult.state
@@ -277,9 +278,19 @@ class LauncherWindow:
         ttk.Button(btns, text="USB-CAN-Treiber installieren", command=self._on_driver).grid(
             row=1, column=0, columnspan=3, pady=(6, 0), sticky="ew")
 
+        # Netzwerk (IP-Adresse dieses PCs)
+        net = ttk.LabelFrame(frm, text="Netzwerk (dieser PC)", padding=8)
+        net.grid(row=5, column=0, columnspan=2, pady=(14, 0), sticky="ew")
+        self.net_text = tk.StringVar(value="lese …")
+        ttk.Label(net, textvariable=self.net_text, wraplength=340, justify="left").grid(row=0, column=0, sticky="w")
+        ttk.Button(net, text="IP-Adresse ändern …", command=self._on_ip).grid(row=1, column=0, sticky="w", pady=(6, 0))
+        self._adapters: list = []
+        self._net_error = ""
+        self._net_wake = threading.Event()
+
         # Update-Zeile
         upd = ttk.Frame(frm)
-        upd.grid(row=5, column=0, columnspan=2, pady=(14, 0), sticky="ew")
+        upd.grid(row=6, column=0, columnspan=2, pady=(14, 0), sticky="ew")
         self.update_text = tk.StringVar(value="")
         ttk.Label(upd, textvariable=self.update_text, wraplength=340, justify="left").grid(row=0, column=0, sticky="w")
         self.update_btn = ttk.Button(upd, text="Nach Updates suchen", command=self._on_update_button)
@@ -296,6 +307,8 @@ class LauncherWindow:
         self._stop = threading.Event()
         self._poller = threading.Thread(target=self._poll_loop, daemon=True)
         self._poller.start()
+        self._net_thread = threading.Thread(target=self._net_loop, daemon=True)
+        self._net_thread.start()
         self.root.protocol("WM_DELETE_WINDOW", self._on_close)
         self.root.after(200, self._render)
 
@@ -320,8 +333,46 @@ class LauncherWindow:
             if result.state != RUNNING and result.detail:
                 lines.append(result.detail)
             self.warn_text.set("\n".join(lines) if lines else "keine")
+        self._render_net()
         self._render_update()
         self.root.after(500, self._render)
+
+    # --- Netzwerk -----------------------------------------------------------------------------
+    def _net_loop(self) -> None:
+        import netconfig
+        while not self._stop.is_set():
+            try:
+                adapters, err = netconfig.list_adapters(), ""
+            except netconfig.NetError as exc:
+                adapters, err = [], str(exc)
+            with self._lock:
+                self._adapters, self._net_error = adapters, err
+            self._net_wake.wait(NET_POLL_INTERVAL_S)
+            self._net_wake.clear()
+
+    def _render_net(self) -> None:
+        import netconfig
+        with self._lock:
+            adapters, err = list(self._adapters), self._net_error
+        if err:
+            self.net_text.set(err)
+            return
+        if not adapters:
+            return
+        lines = [a.summary() for a in adapters if a.connected] or [a.summary() for a in adapters]
+        urls = netconfig.web_urls(adapters, read_web_port())
+        if urls:
+            lines.append("Weboberfläche von anderen Geräten: " + ", ".join(urls))
+        self.net_text.set("\n".join(lines))
+
+    def _on_ip(self) -> None:
+        with self._lock:
+            adapters = list(self._adapters)
+        if not adapters:
+            from tkinter import messagebox
+            messagebox.showinfo("Logotherm Gateway", "Netzwerkadapter werden noch gelesen – bitte kurz warten.")
+            return
+        IpDialog(self.root, adapters, on_done=self._net_wake.set)
 
     # --- Update ------------------------------------------------------------------------------
     def _set_upd(self, **kw) -> None:
@@ -447,10 +498,129 @@ class LauncherWindow:
 
     def _on_close(self) -> None:
         self._stop.set()
+        self._net_wake.set()
         self.root.destroy()
 
     def run(self) -> None:
         self.root.mainloop()
+
+
+class IpDialog:
+    """IP-Adresse eines Netzwerkadapters: DHCP oder manuell (Übernehmen per netsh mit UAC)."""
+
+    def __init__(self, parent, adapters: list, on_done=None) -> None:
+        import tkinter as tk
+        from tkinter import ttk
+
+        self.adapters = adapters
+        self.on_done = on_done
+        self.win = tk.Toplevel(parent)
+        self.win.title("IP-Adresse ändern")
+        self.win.resizable(False, False)
+        self.win.transient(parent)
+        frm = ttk.Frame(self.win, padding=14)
+        frm.grid()
+
+        ttk.Label(frm, text="Adapter:").grid(row=0, column=0, sticky="w")
+        self.adapter = tk.StringVar()
+        names = [f"{a.alias} ({a.desc})" if a.desc else a.alias for a in adapters]
+        self.combo = ttk.Combobox(frm, textvariable=self.adapter, values=names, state="readonly", width=44)
+        self.combo.grid(row=0, column=1, sticky="w", padx=(8, 0))
+        self.combo.bind("<<ComboboxSelected>>", lambda _e: self._load())
+        self.current = tk.StringVar()
+        ttk.Label(frm, textvariable=self.current, foreground="#555", wraplength=360, justify="left").grid(
+            row=1, column=1, sticky="w", padx=(8, 0), pady=(2, 8))
+
+        self.mode = tk.StringVar(value="dhcp")
+        ttk.Radiobutton(frm, text="Automatisch (DHCP)", value="dhcp", variable=self.mode,
+                        command=self._toggle).grid(row=2, column=1, sticky="w", padx=(8, 0))
+        ttk.Radiobutton(frm, text="Manuell", value="static", variable=self.mode,
+                        command=self._toggle).grid(row=3, column=1, sticky="w", padx=(8, 0))
+
+        self.vars = {k: tk.StringVar() for k in ("ip", "mask", "gateway", "dns")}
+        self.entries = []
+        for r, (key, label) in enumerate((("ip", "IP-Adresse:"), ("mask", "Subnetzmaske:"),
+                                          ("gateway", "Gateway (optional):"), ("dns", "DNS (optional):")), start=4):
+            ttk.Label(frm, text=label).grid(row=r, column=0, sticky="w", pady=2)
+            e = ttk.Entry(frm, textvariable=self.vars[key], width=24)
+            e.grid(row=r, column=1, sticky="w", padx=(8, 0), pady=2)
+            self.entries.append(e)
+        ttk.Label(frm, text="Beispiel: 192.168.6.22 · Maske 255.255.255.0 (oder 24) · zwei DNS mit Komma",
+                  foreground="#555").grid(row=8, column=1, sticky="w", padx=(8, 0))
+
+        btns = ttk.Frame(frm)
+        btns.grid(row=9, column=0, columnspan=2, sticky="e", pady=(12, 0))
+        self.ok_btn = ttk.Button(btns, text="Übernehmen", command=self._apply)
+        self.ok_btn.grid(row=0, column=0, padx=(0, 6))
+        ttk.Button(btns, text="Abbrechen", command=self.win.destroy).grid(row=0, column=1)
+
+        self.combo.current(0)
+        self._load()
+
+    def _sel(self):
+        return self.adapters[max(0, self.combo.current())]
+
+    def _load(self) -> None:
+        a = self._sel()
+        self.current.set("Aktuell: " + a.summary().split(": ", 1)[-1]
+                         + (f" · Gateway {a.gateway}" if a.gateway else "")
+                         + (f" · DNS {', '.join(a.dns)}" if a.dns else ""))
+        self.mode.set("dhcp" if a.dhcp else "static")
+        self.vars["ip"].set(a.ip)
+        self.vars["mask"].set(a.mask or "255.255.255.0")
+        self.vars["gateway"].set(a.gateway)
+        self.vars["dns"].set(", ".join(a.dns))
+        self._toggle()
+
+    def _toggle(self) -> None:
+        state = "normal" if self.mode.get() == "static" else "disabled"
+        for e in self.entries:
+            e.configure(state=state)
+
+    def _apply(self) -> None:
+        from tkinter import messagebox
+        import netconfig
+
+        a = self._sel()
+        try:
+            static = None if self.mode.get() == "dhcp" else netconfig.validate_static(
+                self.vars["ip"].get(), self.vars["mask"].get(), self.vars["gateway"].get(), self.vars["dns"].get())
+        except netconfig.NetError as exc:
+            messagebox.showerror("IP-Adresse ändern", str(exc), parent=self.win)
+            return
+        target = "automatisch per DHCP" if static is None else (
+            f"{static.ip} / {static.mask}" + (f", Gateway {static.gateway}" if static.gateway else ""))
+        if not messagebox.askokcancel(
+                "IP-Adresse ändern",
+                f"Adapter „{a.alias}“ auf {target} umstellen?\n\n"
+                "Bestehende Verbindungen über diesen Adapter (Modbus-Leittechnik, Fernzugriff, Browser auf "
+                "anderen Geräten) brechen dabei kurz ab bzw. brauchen danach die neue Adresse.\n"
+                "Windows fragt nach Administratorrechten.", parent=self.win):
+            return
+        self.ok_btn.configure(state="disabled", text="Übernehme …")
+
+        def work() -> None:
+            try:
+                netconfig.apply(a.index, static)
+                err = ""
+            except netconfig.NetError as exc:
+                err = str(exc)
+            except Exception as exc:  # noqa: BLE001
+                err = f"Unerwarteter Fehler: {exc}"
+            self.win.after(0, lambda: self._done(err))
+        threading.Thread(target=work, daemon=True).start()
+
+    def _done(self, err: str) -> None:
+        from tkinter import messagebox
+        if err:
+            self.ok_btn.configure(state="normal", text="Übernehmen")
+            messagebox.showerror("IP-Adresse ändern", err, parent=self.win)
+            return
+        messagebox.showinfo("IP-Adresse ändern", "Übernommen. Die Anzeige im Hauptfenster aktualisiert sich "
+                            "in wenigen Sekunden (bei DHCP kann es etwas dauern).", parent=self.win)
+        if self.on_done:
+            self.on_done()
+        self.win.destroy()
 
 
 def main() -> int:

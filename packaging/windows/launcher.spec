@@ -12,7 +12,7 @@ a = Analysis(
     pathex=[str(ROOT / "launcher")],
     binaries=[],
     datas=[],
-    hiddenimports=["updater"],   # wird erst bei Bedarf importiert
+    hiddenimports=["updater", "netconfig"],   # werden erst bei Bedarf importiert
     excludes=["yaml", "pytest", "can", "pymodbus", "uvicorn", "fastapi", "pydantic"],
     noarchive=False,
 )

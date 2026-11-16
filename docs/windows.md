@@ -45,6 +45,13 @@ Knöpfe:
 - **Dienst neu starten** – fragt per UAC nach Administratorrechten (nur wenn nötig).
 - **Protokoll öffnen** – öffnet `gateway.log` (bzw. den Logordner).
 
+**Netzwerk (dieser PC):** zeigt die IP-Adresse jedes verbundenen Netzwerkadapters (DHCP oder manuell)
+und die Adresse, unter der die Weboberfläche von anderen Geräten erreichbar ist
+(z. B. `http://192.168.6.22:8080`). **IP-Adresse ändern …** öffnet einen Dialog: Adapter wählen,
+*Automatisch (DHCP)* oder *Manuell* mit IP-Adresse, Subnetzmaske (`255.255.255.0` oder `24`),
+optional Gateway und bis zu zwei DNS-Server. *Übernehmen* fragt per UAC nach Administratorrechten
+(`netsh`). Verbindungen über diesen Adapter (Leittechnik, Fernzugriff) brechen dabei kurz ab.
+
 Der Startmenüeintrag *Einrichtung öffnen* verweist fest auf Port 8080; bei geändertem `web.port`
 den Launcher verwenden.
 

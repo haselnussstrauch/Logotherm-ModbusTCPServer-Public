@@ -21,6 +21,10 @@ beim Veröffentlichen als Release-Text verwendet (`packaging/windows/build-docke
   das Dashboard gebraucht wird. Kein Modbus-Port offen, keine Allowlist-Warnung; ein/aus ohne Neustart.
   Das Dashboard zeigt den Modbus-Zustand als eigene Kachel.
 
+- **Launcher: IP-Adresse des PCs.** Das Statusfenster zeigt die aktuelle IP-Adresse (DHCP/manuell) und
+  die Adresse der Weboberfläche für andere Geräte. *IP-Adresse ändern …*: DHCP oder feste Adresse mit
+  Maske, Gateway und DNS – mit Prüfung der Eingaben und UAC-Abfrage.
+
 ## 0.1.8 – 2026-11-06
 
 - **Auswahltexte:** Werte, die der Regler als Text anzeigt (z. B. Betriebsart, Kesselstatus), holt

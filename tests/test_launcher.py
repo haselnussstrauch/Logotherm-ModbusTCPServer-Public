@@ -156,6 +156,7 @@ def test_fenster_baut_sich_auf():
         # Tk-Variablen hier im Hauptthread freigeben: Hält der Status-Thread die letzte Referenz,
         # laufen die __del__ in seinem Thread („main thread is not in main loop“).
         win._poller.join(timeout=10)
+        win._net_thread.join(timeout=30)
         del win
         gc.collect()
 
