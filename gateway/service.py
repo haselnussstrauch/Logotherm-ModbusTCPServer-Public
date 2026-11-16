@@ -105,6 +105,8 @@ class Service:
         self._history_task: asyncio.Task | None = None
         self._history_wake = asyncio.Event()
         self._history_warning = ""
+        from gateway.update_manager import UpdateManager
+        self.updates = UpdateManager(cfg.service.resolved_data_dir(), lambda: self.cfg.updates.check)
 
     # ===== Lebenszyklus ==========================================================================
     async def start(self, *, web: bool = True) -> None:
@@ -125,6 +127,8 @@ class Service:
                     log.warning("Schnittstelle %s beim Start nicht verfügbar: %s", bus, exc)
             self.poller.start()
         self._history_task = asyncio.create_task(self._history_loop(), name="history")
+        if not self.dummy:
+            self.updates.start()
         if web:
             from gateway.web.server import serve_web
             from gateway.web.app import create_app
@@ -142,6 +146,7 @@ class Service:
             with contextlib.suppress(BaseException):
                 await self._history_task
         self.history.close()
+        await self.updates.stop()
         if self.modbus:
             await self.modbus.stop()
         for drv in self._drivers.values():
@@ -567,7 +572,7 @@ class Service:
     def remove_draft_device(self, device_id: str) -> None:
         self.draft.devices = [d for d in self.draft.devices if d.id != device_id]
 
-    _SECTIONS = {"can", "modbus", "poll", "safety", "web", "lc1", "history"}
+    _SECTIONS = {"can", "modbus", "poll", "safety", "web", "lc1", "history", "updates"}
 
     def update_draft_settings(self, section: str, values: dict) -> None:
         if section not in self._SECTIONS:

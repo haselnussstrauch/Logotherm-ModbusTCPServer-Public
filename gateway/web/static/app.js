@@ -211,7 +211,11 @@ PAGES.iface = async function () {
         try { await api("POST", "/api/password", { password: pw.value }); pw.value = ""; toast("Passwort gesetzt."); await loadCfg(); } catch (e) { fail(e); }
       }
     }, "Passwort setzen"));
-  $main.replaceChildren(canCard, lc1Card, mbCard, pollCard, safeCard, webCard, pwCard);
+  const updCard = sectionCard("Updates", "updates", [
+    field("updates", "check", "Täglich nach neuen Versionen suchen (GitHub)", "bool")],
+    h("p", {}, `Installiert: Version ${CFG.version || "?"} `,
+      h("button", { class: "btn sec", onclick: (ev) => updCheckNow(ev.target) }, "Jetzt nach Updates suchen")));
+  $main.replaceChildren(canCard, lc1Card, mbCard, pollCard, safeCard, webCard, pwCard, updCard);
   loadPorts(portsBox);
 };
 

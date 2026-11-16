@@ -141,6 +141,11 @@ class HistoryConfig(_Model):
     retention_days: int = Field(14, ge=1, le=3650)       # ältere Tage werden automatisch gelöscht
 
 
+class UpdatesConfig(_Model):
+    """Täglich bei GitHub nach einer neuen Version fragen (Hinweis und Update-Knopf im Web)."""
+    check: bool = True
+
+
 # --- Werte und Geräte -------------------------------------------------------------------------
 class ValueDef(_Model):
     """Ein Messwert (Input-Register). CAN: `nr`, LC1: `k` (1..35)."""
@@ -247,6 +252,7 @@ class GatewayConfig(_Model):
     web: WebConfig = WebConfig()
     poll: PollConfig = PollConfig()
     history: HistoryConfig = HistoryConfig()
+    updates: UpdatesConfig = UpdatesConfig()
     devices: list[DeviceConfig] = []
 
     @model_validator(mode="after")

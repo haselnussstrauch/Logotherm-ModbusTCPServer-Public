@@ -17,6 +17,7 @@ from fastapi.concurrency import iterate_in_threadpool
 from fastapi.responses import FileResponse, JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
+from gateway import __version__
 from gateway.config import NUMERIC_VARTYPES
 from gateway.devices.names import display_name
 from gateway.drivers import DeviceInfo
@@ -259,7 +260,7 @@ def create_app(service) -> FastAPI:
         return {"active": dump_cfg(service.cfg), "draft": dump_cfg(service.draft),
                 "dirty": bool(changes), "changes": changes,
                 "password_set": password_set(), "config_path": str(service.config_path),
-                "windows_local_only": False, "web_remote": not is_local()}
+                "windows_local_only": False, "web_remote": not is_local(), "version": __version__}
 
     @app.patch("/api/draft/settings/{section}")
     async def patch_settings(section: str, request: Request):
@@ -402,6 +403,25 @@ def create_app(service) -> FastAPI:
     @app.get("/api/dashboard")
     async def dashboard():
         return jsonable(service.dashboard())
+
+    # --- Update (Hinweis, beim Windows-Dienst auch Installation) -------------------------------
+    @app.get("/api/update")
+    async def update_status():
+        return service.updates.status()
+
+    @app.post("/api/update/check")
+    async def update_check():
+        return await service.updates.check()
+
+    @app.post("/api/update/install")
+    async def update_install():
+        try:
+            st = await service.updates.install()
+        except ValueError as exc:
+            raise HTTPException(409, str(exc)) from exc
+        if st["state"] == "error":
+            raise HTTPException(502, st["error"])
+        return st
 
     # --- Parameter setzen (gleicher Weg wie Modbus FC 16) --------------------------------------
     @app.get("/api/devices/{device_id}/params")

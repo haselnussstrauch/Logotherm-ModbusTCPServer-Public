@@ -9,10 +9,10 @@ ROOT = HERE.parents[1]
 
 a = Analysis(
     [str(ROOT / "launcher" / "launcher.py")],
-    pathex=[str(ROOT / "launcher")],
+    pathex=[str(ROOT / "launcher"), str(ROOT)],   # ROOT: gateway/updater.py (nur Standardbibliothek)
     binaries=[],
     datas=[],
-    hiddenimports=["updater", "netconfig"],   # werden erst bei Bedarf importiert
+    hiddenimports=["updater", "netconfig", "gateway.updater"],   # werden erst bei Bedarf importiert
     excludes=["yaml", "pytest", "can", "pymodbus", "uvicorn", "fastapi", "pydantic"],
     noarchive=False,
 )
