@@ -61,6 +61,14 @@ SHA256-Prüfsumme geprüft und das Setup gestartet (Administratorrechte). Konfig
 Aufzeichnung bleiben erhalten. Ohne Internet bleibt die Prüfung still; *Nach Updates suchen* prüft
 von Hand.
 
+**Update aus der Weboberfläche:** Der Dienst prüft ebenfalls täglich. Gibt es eine neue Version,
+erscheint oben auf jeder Seite *Neue Version … verfügbar* mit **Jetzt installieren**. Der Dienst lädt
+das Setup, prüft die SHA256-Prüfsumme und startet es still über die Aufgabenplanung (einmalige
+Aufgabe `LogothermGatewayUpdate` als SYSTEM). Modbus und Weboberfläche sind dabei 1–2 Minuten weg,
+danach lädt die Seite mit der neuen Version neu. Der WinUSB-Treiber wird dabei nicht neu installiert;
+die übrigen Einstellungen des Setups bleiben. Protokoll: `logs\update-setup-<Version>.log`.
+Abschalten: *1 Schnittstellen → Updates*. Dort auch *Jetzt nach Updates suchen*.
+
 ### Einrichtung im Browser
 
 1. *Einrichtung öffnen*, **ein Passwort setzen** (Weboberfläche ist nur lokal erreichbar, das

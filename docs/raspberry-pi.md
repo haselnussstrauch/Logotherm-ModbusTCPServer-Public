@@ -265,6 +265,9 @@ cd docker
 docker compose up -d --build
 ```
 
+Gibt es eine neue Version, zeigt die Weboberfläche oben einen Hinweis mit genau diesem Befehl
+(zum Kopieren).
+
 Welche Version läuft: `docker compose exec gateway gateway --version`
 
 ---

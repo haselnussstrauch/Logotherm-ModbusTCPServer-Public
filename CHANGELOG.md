@@ -3,6 +3,13 @@
 Format: je Version ein Abschnitt `## <Version> – <Datum>`. Der Abschnitt der aktuellen Version wird
 beim Veröffentlichen als Release-Text verwendet (`packaging/windows/build-docker.ps1 -Release`).
 
+## Unveröffentlicht
+
+- **Update-Knopf in der Weboberfläche:** Gibt es eine neue Version, erscheint oben auf jeder Seite ein
+  Hinweis. Beim Windows-Dienst installiert *Jetzt installieren* das Update still (Download mit
+  Prüfsumme, Setup über die Aufgabenplanung, Seite lädt danach neu). Beim Raspberry Pi/Docker zeigt der
+  Hinweis den Befehl zum Aktualisieren. Abschaltbar unter *1 Schnittstellen → Updates*.
+
 ## 0.1.9 – 2026-11-16
 
 - **Launcher: IP-Adresse des PCs.** Das Statusfenster zeigt die aktuelle IP-Adresse (DHCP/manuell) und
