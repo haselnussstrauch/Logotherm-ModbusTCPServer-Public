@@ -97,12 +97,22 @@ function go(p) {
   if (timer) { clearInterval(timer); timer = null; }
   page = p;
   if (location.hash.slice(1).split("?")[0] !== p) history.replaceState(null, "", "#" + p);
-  for (const b of document.querySelectorAll("#nav button")) b.classList.toggle("active", b.dataset.page === p);
+  for (const b of document.querySelectorAll("#nav button")) {
+    b.classList.toggle("active", b.dataset.page === p);
+    if (b.dataset.page === p) document.getElementById("menu-cur").textContent = b.textContent;
+  }
+  setMenu(false);
   loadCfg().then(() => PAGES[p]()).catch(fail);
 }
 document.getElementById("nav").addEventListener("click", (e) => {
   if (e.target.dataset.page) go(e.target.dataset.page);
 });
+// Smartphone: Seitenmenü auf-/zuklappen
+function setMenu(open) {
+  document.querySelector("header").classList.toggle("menu-open", open);
+  document.getElementById("menu-btn").setAttribute("aria-expanded", String(open));
+}
+document.getElementById("menu-btn").onclick = () => setMenu(!document.querySelector("header").classList.contains("menu-open"));
 document.getElementById("dirty").onclick = () => go(valDirty ? "values" : "save");
 
 // --- Formularfelder für Einstellungen -----------------------------------------------------

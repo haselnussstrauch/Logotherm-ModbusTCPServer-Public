@@ -28,7 +28,8 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PIP_NO_CACHE_DIR=1 \
-    GATEWAY_DATA_DIR=/data
+    GATEWAY_DATA_DIR=/data \
+    GATEWAY_IN_DOCKER=1
 
 # iproute2: optionales "ip link set can0 ..." (CAN_SETUP=1, braucht NET_ADMIN).
 RUN apt-get update \

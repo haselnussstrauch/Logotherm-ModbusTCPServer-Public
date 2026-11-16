@@ -12,6 +12,7 @@ header h1 .sub { font-weight: 400; color: var(--ink-2); }
 nav { display: flex; gap: 2px; flex-wrap: wrap; flex: 1; }
 nav button { background: transparent; color: var(--ink); border: 0; padding: 8px 12px; cursor: pointer; font-size: 15px; border-radius: 4px; font-family: inherit; }
 nav button:hover { background: var(--surface); }
+#menu-btn { display: none; }
 nav button.active { background: var(--brand); color: #fff; font-weight: 600; }
 #dirty { background: #f0a800; color: #000; padding: 4px 10px; border-radius: 4px; font-weight: 600; display: none; cursor: pointer; }
 main { max-width: 1200px; margin: 0 auto; padding: 16px; }
@@ -102,8 +103,16 @@ td.nowrap { white-space: nowrap; }
   body { font-size: 14px; overflow-x: hidden; }
   header { padding: 6px 10px; gap: 4px 6px; }
   header h1 { font-size: 18px; }
-  nav { flex: 1 0 100%; min-width: 0; flex-wrap: nowrap; overflow-x: auto; }
-  nav button { white-space: nowrap; padding: 7px 10px; }
+  #menu-btn { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; order: 2;
+    background: var(--brand); color: #fff; border: 0; border-radius: 4px; padding: 7px 12px;
+    font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; max-width: 60vw; }
+  #menu-btn #menu-cur { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #menu-btn .burger { font-size: 18px; line-height: 1; }
+  #dirty, #logout { order: 3; }
+  nav { order: 4; display: none; flex: 1 0 100%; flex-direction: column; gap: 0; }
+  header.menu-open nav { display: flex; }
+  nav button { text-align: left; padding: 11px 12px; font-size: 16px; border-bottom: 1px solid var(--line, #e3e3e3); border-radius: 0; }
+  nav button:last-child { border-bottom: 0; }
   main { padding: 8px; }
   section.card { padding: 10px; }
   .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }

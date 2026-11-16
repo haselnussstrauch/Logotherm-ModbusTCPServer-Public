@@ -3,6 +3,14 @@
 Format: je Version ein Abschnitt `## <Version> – <Datum>`. Der Abschnitt der aktuellen Version wird
 beim Veröffentlichen als Release-Text verwendet (`packaging/windows/build-docker.ps1 -Release`).
 
+## 0.1.11 – 2026-11-16
+
+- **Menü am Handy:** Auf schmalen Bildschirmen gibt es statt der waagrecht scrollenden Reiterleiste einen
+  Menüknopf oben rechts (zeigt die aktuelle Seite); ein Tipp klappt die Liste aller Seiten auf.
+- **Update-Hinweis am Raspberry Pi:** *Kopieren* des Update-Befehls funktioniert jetzt auch über
+  `http://` (vorher passierte nichts). Das Docker-Image kennzeichnet sich zusätzlich selbst
+  (`GATEWAY_IN_DOCKER=1`).
+
 ## 0.1.10 – 2026-11-16
 
 - **Update-Knopf in der Weboberfläche:** Gibt es eine neue Version, erscheint oben auf jeder Seite ein

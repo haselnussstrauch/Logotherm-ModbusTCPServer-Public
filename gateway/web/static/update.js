@@ -32,12 +32,26 @@ function renderUpdate(u) {
   } else if (u.docker_command) {
     kids.push(h("div", { class: "hint" }, "Am Raspberry Pi bzw. Docker-Host (per SSH) ausführen:"),
       h("code", { class: "upd-cmd" }, u.docker_command), " ",
-      h("button", { class: "btn sec", onclick: () => navigator.clipboard.writeText(u.docker_command).then(() => toast("Befehl kopiert"), fail) }, "Kopieren"));
+      h("button", { class: "btn sec", onclick: () => updCopy(u.docker_command) }, "Kopieren"));
   } else {
     kids.push(h("span", { class: "hint" }, "Bitte das neue Setup von GitHub installieren."));
   }
   if (u.state === "error" && u.error) kids.push(h("div", { class: "err-text" }, u.error));
   box.replaceChildren(...kids);
+}
+
+// navigator.clipboard gibt es nur über HTTPS/localhost – am Pi (http://logogateway.local) fehlt es.
+async function updCopy(text) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(text); toast("Befehl kopiert"); return; }
+  } catch (e) { /* Rückfall unten */ }
+  const ta = document.createElement("textarea");
+  ta.value = text; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0";
+  document.body.appendChild(ta); ta.select();
+  let ok = false;
+  try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+  ta.remove();
+  if (ok) toast("Befehl kopiert"); else prompt("Befehl kopieren (Strg+C):", text);
 }
 
 async function updInstall(u) {
